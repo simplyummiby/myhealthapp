@@ -174,6 +174,10 @@
 </div>
 
 <script>
+  /* =========================
+     WATER TRACKER
+  ========================= */
+
   let waterCount = Number(localStorage.getItem("waterCount")) || 0;
   const goal = 8;
 
@@ -189,6 +193,7 @@
     });
 
     waterText.textContent = waterCount + " of " + goal + " glasses today";
+
     localStorage.setItem("waterCount", waterCount);
   }
 
@@ -207,6 +212,11 @@
     updateGlasses();
   });
 
+
+  /* =========================
+     SNACK PAUSE AFFIRMATIONS
+  ========================= */
+
   const affirmations = [
     "Pause first. I can choose what helps my body.",
     "This craving is a wave. I do not have to obey it.",
@@ -217,79 +227,7 @@
     "I do not have to snack just because the thought showed up.",
     "Water first. Then I can decide with a clearer mind."
   ];
-const stepGoalInput = document.getElementById("stepGoalInput");
-const startHourInput = document.getElementById("startHourInput");
-const endHourInput = document.getElementById("endHourInput");
-const makeStepPlanBtn = document.getElementById("makeStepPlan");
-const stepTableBody = document.querySelector("#stepTable tbody");
-const stepMessage = document.getElementById("stepMessage");
 
-function formatHour(hour) {
-  const suffix = hour >= 12 ? "PM" : "AM";
-  let displayHour = hour % 12;
-
-  if (displayHour === 0) {
-    displayHour = 12;
-  }
-
-  return displayHour + ":00 " + suffix;
-}
-
-function makeStepPlan() {
-  const stepGoal = Number(stepGoalInput.value);
-  const startHour = Number(startHourInput.value);
-  const endHour = Number(endHourInput.value);
-
-  stepTableBody.innerHTML = "";
-  stepMessage.textContent = "";
-
-  if (!stepGoal || endHour <= startHour) {
-    stepMessage.textContent = "Check your goal and times, then try again.";
-    return;
-  }
-
-  const totalHours = endHour - startHour;
-  const stepsPerHour = Math.ceil(stepGoal / totalHours);
-
-  for (let i = 1; i <= totalHours; i++) {
-    const targetTime = startHour + i;
-    let cumulativeSteps = stepsPerHour * i;
-
-    if (cumulativeSteps > stepGoal) {
-      cumulativeSteps = stepGoal;
-    }
-
-    const row = document.createElement("tr");
-
-    row.innerHTML = `
-      <td>${formatHour(targetTime)}</td>
-      <td>${cumulativeSteps.toLocaleString()} steps</td>
-      <td><input type="checkbox" class="step-check"></td>
-    `;
-
-    stepTableBody.appendChild(row);
-  }
-
-  stepMessage.textContent =
-    "Aim for about " + stepsPerHour.toLocaleString() + " steps each hour.";
-}
-
-function checkStepParty() {
-  const checks = document.querySelectorAll(".step-check");
-  const checked = document.querySelectorAll(".step-check:checked");
-
-  if (checks.length > 0 && checks.length === checked.length) {
-    stepMessage.textContent = "🎉 Step goal plan completed!";
-  }
-}
-
-makeStepPlanBtn.addEventListener("click", makeStepPlan);
-
-stepTableBody.addEventListener("change", function(event) {
-  if (event.target.classList.contains("step-check")) {
-    checkStepParty();
-  }
-});
   const pauseSnackBtn = document.getElementById("pauseSnack");
   const affirmationText = document.getElementById("affirmationText");
 
@@ -298,5 +236,123 @@ stepTableBody.addEventListener("change", function(event) {
     affirmationText.textContent = affirmations[randomIndex];
   });
 
+
+  /* =========================
+     STEP GOAL TRACKER
+  ========================= */
+
+  const stepGoalInput = document.getElementById("stepGoalInput");
+  const startHourInput = document.getElementById("startHourInput");
+  const endHourInput = document.getElementById("endHourInput");
+  const makeStepPlanBtn = document.getElementById("makeStepPlan");
+  const stepTableBody = document.querySelector("#stepTable tbody");
+  const stepMessage = document.getElementById("stepMessage");
+
+  let savedStepChecks = JSON.parse(localStorage.getItem("savedStepChecks")) || [];
+
+  stepGoalInput.value = localStorage.getItem("stepGoal") || stepGoalInput.value;
+  startHourInput.value = localStorage.getItem("startHour") || startHourInput.value;
+  endHourInput.value = localStorage.getItem("endHour") || endHourInput.value;
+
+  function formatHour(hour) {
+    const suffix = hour >= 12 ? "PM" : "AM";
+    let displayHour = hour % 12;
+
+    if (displayHour === 0) {
+      displayHour = 12;
+    }
+
+    return displayHour + ":00 " + suffix;
+  }
+
+  function saveStepSettings() {
+    localStorage.setItem("stepGoal", stepGoalInput.value);
+    localStorage.setItem("startHour", startHourInput.value);
+    localStorage.setItem("endHour", endHourInput.value);
+  }
+
+  function saveStepChecks() {
+    const checks = document.querySelectorAll(".step-check");
+
+    const checkData = Array.from(checks).map(function(check) {
+      return check.checked;
+    });
+
+    localStorage.setItem("savedStepChecks", JSON.stringify(checkData));
+  }
+
+  function makeStepPlan() {
+    const stepGoal = Number(stepGoalInput.value);
+    const startHour = Number(startHourInput.value);
+    const endHour = Number(endHourInput.value);
+
+    stepTableBody.innerHTML = "";
+    stepMessage.textContent = "";
+
+    if (!stepGoal || endHour <= startHour) {
+      stepMessage.textContent = "Check your goal and times, then try again.";
+      return;
+    }
+
+    saveStepSettings();
+
+    const totalHours = endHour - startHour;
+    const stepsPerHour = Math.ceil(stepGoal / totalHours);
+
+    for (let i = 1; i <= totalHours; i++) {
+      const targetTime = startHour + i;
+      let cumulativeSteps = stepsPerHour * i;
+
+      if (cumulativeSteps > stepGoal) {
+        cumulativeSteps = stepGoal;
+      }
+
+      const isChecked = savedStepChecks[i - 1] === true ? "checked" : "";
+
+      const row = document.createElement("tr");
+
+      row.innerHTML = `
+        <td>${formatHour(targetTime)}</td>
+        <td>${cumulativeSteps.toLocaleString()} steps</td>
+        <td><input type="checkbox" class="step-check" ${isChecked}></td>
+      `;
+
+      stepTableBody.appendChild(row);
+    }
+
+    stepMessage.textContent =
+      "Aim for about " + stepsPerHour.toLocaleString() + " steps each hour.";
+
+    checkStepParty();
+  }
+
+  function checkStepParty() {
+    const checks = document.querySelectorAll(".step-check");
+    const checked = document.querySelectorAll(".step-check:checked");
+
+    if (checks.length > 0 && checks.length === checked.length) {
+      stepMessage.textContent = "🎉 Step goal plan completed!";
+    }
+  }
+
+  makeStepPlanBtn.addEventListener("click", function() {
+    savedStepChecks = [];
+    localStorage.setItem("savedStepChecks", JSON.stringify(savedStepChecks));
+    makeStepPlan();
+  });
+
+  stepTableBody.addEventListener("change", function(event) {
+    if (event.target.classList.contains("step-check")) {
+      saveStepChecks();
+      checkStepParty();
+    }
+  });
+
+
+  /* =========================
+     START THE APP
+  ========================= */
+
   updateGlasses();
+  makeStepPlan();
 </script>
