@@ -609,12 +609,13 @@ document.getElementById("signOutBtn").addEventListener("click", async function()
     makeWaterPlan();
   });
 
-  waterTableBody.addEventListener("change", function(event) {
-    if (event.target.classList.contains("water-check")) {
-      saveWaterChecks();
-      updateWaterGlasses();
-    }
-  });
+ waterTableBody.addEventListener("change", function(event) {
+  if (event.target.classList.contains("water-check")) {
+    saveWaterChecks();
+    updateWaterGlasses();
+    saveCloudData();
+  }
+});
 
   /* STEPS */
 
@@ -699,7 +700,43 @@ document.getElementById("signOutBtn").addEventListener("click", async function()
     checkStepParty();
     updateSummary();
   }
+async function saveCloudData() {
+  if (!currentUser) return;
 
+  const waterChecks = Array.from(document.querySelectorAll(".water-check")).map(
+    check => check.checked
+  );
+
+  const stepChecks = Array.from(document.querySelectorAll(".step-check")).map(
+    check => check.checked
+  );
+
+  const { error } = await supabaseClient
+    .from("daily_health")
+    .upsert(
+      {
+        user_id: currentUser.id,
+        date: todayKey,
+
+        water_goal: Number(waterGoalInput.value),
+        water_start: Number(waterStartInput.value),
+        water_end: Number(waterEndInput.value),
+        water_checks: waterChecks,
+
+        step_goal: Number(stepGoalInput.value),
+        step_start: Number(startHourInput.value),
+        step_end: Number(endHourInput.value),
+        step_checks: stepChecks,
+
+        updated_at: new Date().toISOString()
+      },
+      { onConflict: "user_id,date" }
+    );
+
+  if (error) {
+    console.log("Cloud save error:", error.message);
+  }
+}
   function checkStepParty() {
     const checks = document.querySelectorAll(".step-check");
     const checked = document.querySelectorAll(".step-check:checked");
@@ -736,14 +773,14 @@ document.getElementById("signOutBtn").addEventListener("click", async function()
     makeStepPlan();
   });
 
-  stepTableBody.addEventListener("change", function(event) {
-    if (event.target.classList.contains("step-check")) {
-      saveStepChecks();
-      checkStepParty();
-      updateSummary();
-    }
-  });
-
+stepTableBody.addEventListener("change", function(event) {
+  if (event.target.classList.contains("step-check")) {
+    saveStepChecks();
+    checkStepParty();
+    updateSummary();
+    saveCloudData();
+  }
+});
   /* START APP */
 
   makeWaterPlan();
