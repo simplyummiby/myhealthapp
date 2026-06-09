@@ -394,6 +394,7 @@ const supabaseClient = supabase.createClient(
   const emailInput = document.getElementById("emailInput");
 const passwordInput = document.getElementById("passwordInput");
 const authMessage = document.getElementById("authMessage");
+  const syncStatus = document.getElementById("syncStatus");
 
 let currentUser = null;
 
@@ -700,7 +701,7 @@ document.getElementById("signOutBtn").addEventListener("click", async function()
   }
 async function saveCloudData() {
   if (!currentUser) return;
-
+syncStatus.textContent = "☁ Saving...";
   const waterChecks = Array.from(document.querySelectorAll(".water-check")).map(
     check => check.checked
   );
@@ -731,10 +732,13 @@ async function saveCloudData() {
       { onConflict: "user_id,date" }
     );
 
-  if (error) {
-    console.log("Cloud save error:", error.message);
-  }
+if (error) {
+  console.log("Cloud save error:", error.message);
+  syncStatus.textContent = "⚠️ Sync error";
+  return;
 }
+
+syncStatus.textContent = "☁ Synced";}
 
 async function loadCloudData() {
   if (!currentUser) return;
@@ -768,6 +772,7 @@ async function loadCloudData() {
   makeWaterPlan();
   makeStepPlan();
   updateSummary();
+  syncStatus.textContent = "☁ Synced";
 }  
   function checkStepParty() {
     const checks = document.querySelectorAll(".step-check");
