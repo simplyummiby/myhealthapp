@@ -739,9 +739,38 @@ async function saveCloudData() {
 }
 
 async function loadCloudData() {
-  // paste load code here
-}
-  
+  if (!currentUser) return;
+
+  const { data, error } = await supabaseClient
+    .from("daily_health")
+    .select("*")
+    .eq("user_id", currentUser.id)
+    .eq("date", todayKey)
+    .maybeSingle();
+
+  if (error) {
+    console.log("Cloud load error:", error.message);
+    return;
+  }
+
+  if (!data) {
+    return;
+  }
+
+  waterGoalInput.value = data.water_goal || waterGoalInput.value;
+  waterStartInput.value = data.water_start || waterStartInput.value;
+  waterEndInput.value = data.water_end || waterEndInput.value;
+  savedWaterChecks = data.water_checks || [];
+
+  stepGoalInput.value = data.step_goal || stepGoalInput.value;
+  startHourInput.value = data.step_start || startHourInput.value;
+  endHourInput.value = data.step_end || endHourInput.value;
+  savedStepChecks = data.step_checks || [];
+
+  makeWaterPlan();
+  makeStepPlan();
+  updateSummary();
+}  
   function checkStepParty() {
     const checks = document.querySelectorAll(".step-check");
     const checked = document.querySelectorAll(".step-check:checked");
