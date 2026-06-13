@@ -7,15 +7,17 @@
 <title>Today Health Dashboard</title>
 
 <!--
-Version 1.2.5
-Water dashboard polish:
-- Water page styled closer to mockup
-- Large progress circle and Next Glass card
-- Today's Progress section
-- Styled checkpoint list
-- Hydration tip card
-- Settings at bottom
+Version 1.2.5.1
+Date: 2026-06-13
+
+Changes:
+- Fixed Water Update Plan button
+- Prevented waterGlasses JavaScript error after v1.2.5 layout change
+- Kept v1.2.5 Water dashboard polish
 - Supabase sync retained
+
+Previous Version:
+- v1.2.5 Water dashboard polish
 -->
 
 <style>
@@ -1474,13 +1476,20 @@ function updateWaterGlasses() {
   const waterGoal = Number(waterGoalInput.value);
   const checked = document.querySelectorAll(".water-check:checked").length;
 
-  waterGlasses.innerHTML = "";
+  /*
+    v1.2.5.1 fix:
+    v1.2.5 removed the old #waterGlasses display from the Water tab.
+    This check prevents JavaScript from stopping when that element does not exist.
+  */
+  if (waterGlasses) {
+    waterGlasses.innerHTML = "";
 
-  for (let i = 0; i < waterGoal; i++) {
-    const glass = document.createElement("div");
-    glass.className = "glass";
-    if (i < checked) glass.classList.add("full");
-    waterGlasses.appendChild(glass);
+    for (let i = 0; i < waterGoal; i++) {
+      const glass = document.createElement("div");
+      glass.className = "glass";
+      if (i < checked) glass.classList.add("full");
+      waterGlasses.appendChild(glass);
+    }
   }
 
   waterMessage.textContent =
@@ -1664,7 +1673,10 @@ function makeWaterPlan() {
 makeWaterPlanBtn.addEventListener("click", function() {
   savedWaterChecks = [];
   localStorage.setItem(dailyKey("savedWaterChecks"), JSON.stringify(savedWaterChecks));
+
+  saveWaterSettings();
   makeWaterPlan();
+  updateWaterFeatureUI();
   saveCloudData();
 });
 
