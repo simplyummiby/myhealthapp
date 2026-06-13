@@ -7,13 +7,13 @@
 <title>Today Health Dashboard</title>
 
 <!--
-Version 1.2.1
-Water tracker structure:
+Version 1.2.4
+Water checkpoint cards:
 - Dashboard redesign retained
-- Water tracker reorganized into a more motivating layout
-- Progress and next-glass areas added
-- Water timeline separated from settings
-- Plan settings moved to the bottom
+- Water progress circle retained
+- Smart next-glass card retained
+- Water timeline table converted into visual checkpoint cards
+- Supabase sync retained
 -->
 
 <style>
@@ -490,6 +490,100 @@ th {
   margin-top: 4px;
 }
 
+/* WATER CHECKPOINT CARDS V1.2.4 */
+
+.water-checkpoint-list {
+  display: grid;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.water-checkpoint-card {
+  display: grid;
+  grid-template-columns: 46px 1fr auto;
+  gap: 14px;
+  align-items: center;
+  background: #faf7ff;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 14px;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+.water-checkpoint-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 24px rgba(54, 35, 93, 0.08);
+}
+
+.water-checkpoint-card.done {
+  background: #eaf4ff;
+  border-color: #b9ddff;
+}
+
+.water-checkpoint-card.next {
+  background: #f1e8ff;
+  border-color: #cdb8ff;
+}
+
+.water-check-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 2px solid #d1cae7;
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+  color: var(--muted);
+  background: white;
+}
+
+.water-checkpoint-card.done .water-check-icon {
+  background: var(--blue);
+  border-color: var(--blue);
+  color: white;
+}
+
+.water-checkpoint-card.next .water-check-icon {
+  background: var(--purple);
+  border-color: var(--purple);
+  color: white;
+}
+
+.water-check-main strong {
+  display: block;
+  font-size: 18px;
+}
+
+.water-check-main span {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.water-badge {
+  border-radius: 999px;
+  padding: 8px 10px;
+  background: white;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.water-checkpoint-card.done .water-badge {
+  background: var(--blue);
+  color: white;
+}
+
+.water-checkpoint-card.next .water-badge {
+  background: var(--purple);
+  color: white;
+}
+
+.hidden-table {
+  display: none;
+}
+
 @media (max-width: 900px) {
   .app {
     grid-template-columns: 1fr;
@@ -715,11 +809,13 @@ th {
 
       <div class="tool-card">
         <div class="card-header">
-          <h2>Water Timeline</h2>
-          <span class="goal-label">Check off each target</span>
+          <h2>Water Checkpoints</h2>
+          <span class="goal-label">Tap a card to check it off</span>
         </div>
 
-        <table id="waterTable">
+        <div id="waterCheckpointCards" class="water-checkpoint-list"></div>
+
+        <table id="waterTable" class="hidden-table">
           <thead>
             <tr>
               <th>By Time</th>
@@ -1086,6 +1182,59 @@ function updateWaterFeatureUI() {
     nextWaterTime.textContent = "Done for today";
     nextWaterTarget.textContent = "🎉 Water goal complete";
   }
+
+  renderWaterCheckpointCards();
+}
+
+function renderWaterCheckpointCards() {
+  const cardList = document.getElementById("waterCheckpointCards");
+  if (!cardList) return;
+
+  const rows = Array.from(document.querySelectorAll("#waterTable tbody tr"));
+  const nextIndex = rows.findIndex(function(row) {
+    const checkbox = row.querySelector(".water-check");
+    return checkbox && !checkbox.checked;
+  });
+
+  cardList.innerHTML = "";
+
+  rows.forEach(function(row, index) {
+    const checkbox = row.querySelector(".water-check");
+    const isDone = checkbox && checkbox.checked;
+    const isNext = index === nextIndex;
+    const timeText = row.children[0].textContent;
+    const waterText = row.children[1].textContent;
+
+    const card = document.createElement("div");
+    card.className = "water-checkpoint-card";
+
+    if (isDone) {
+      card.classList.add("done");
+    } else if (isNext) {
+      card.classList.add("next");
+    }
+
+    const badgeText = isDone ? "Done" : isNext ? "Next Up" : "To Do";
+    const iconText = isDone ? "✓" : isNext ? "•" : "";
+
+    card.innerHTML = `
+      <div class="water-check-icon">${iconText}</div>
+      <div class="water-check-main">
+        <strong>${timeText}</strong>
+        <span>${waterText}</span>
+      </div>
+      <div class="water-badge">${badgeText}</div>
+    `;
+
+    card.addEventListener("click", function() {
+      checkbox.checked = !checkbox.checked;
+      saveWaterChecks();
+      updateWaterGlasses();
+      saveCloudData();
+    });
+
+    cardList.appendChild(card);
+  });
 }
 
 function makeWaterPlan() {
