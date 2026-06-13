@@ -5,412 +5,722 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <title>Today Health Dashboard</title>
-<!--
-Version 1.0
-Date: 2026-06-09
 
-Cloud sync milestone:
-- Supabase authentication
-- Cross-device syncing
-- Water tracking
-- Step tracking
-- Session persistence
-- Sync status indicator
--->
 <style>
-  :root {
-    --bg: #f9f3f2;
-    --card: #fffdfd;
-    --soft-pink: #fff7fa;
-    --pink: #f3c7d5;
-    --blue: #d8ecff;
-    --line: #f1dddd;
-    --text: #333;
-    --muted: #777;
-  }
+:root {
+  --bg: #f7f4fb;
+  --card: #ffffff;
+  --text: #17172f;
+  --muted: #68708a;
+  --line: #e5dcf5;
+  --purple: #6d35d8;
+  --purple-soft: #f1e8ff;
+  --blue: #2f80ed;
+  --blue-soft: #eaf4ff;
+  --green: #16a05d;
+  --green-soft: #eafaf1;
+  --gold: #f5a400;
+  --gold-soft: #fff4d8;
+  --shadow: 0 14px 35px rgba(54, 35, 93, 0.08);
+}
 
-  * {
-    box-sizing: border-box;
-  }
+* {
+  box-sizing: border-box;
+}
 
-  body {
-    margin: 0;
-    font-family: Arial, sans-serif;
-    background: var(--bg);
-    color: var(--text);
-  }
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: linear-gradient(135deg, #fbf9ff, #f5f9ff);
+  color: var(--text);
+}
 
-  .app-shell {
-    max-width: 1100px;
-    margin: 0 auto;
-    padding: 24px;
-  }
+.app {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  min-height: 100vh;
+}
 
-  .dashboard {
-    display: grid;
-    grid-template-columns: 190px 1fr;
-    gap: 20px;
+/* SIDEBAR */
+
+.sidebar {
+  background: rgba(255,255,255,0.85);
+  border-right: 1px solid var(--line);
+  padding: 28px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.logo {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  font-size: 21px;
+  font-weight: 800;
+  margin-bottom: 12px;
+}
+
+.logo-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #7c3aed, #9d6cff);
+  color: white;
+  display: grid;
+  place-items: center;
+  font-size: 26px;
+}
+
+.nav {
+  display: grid;
+  gap: 10px;
+}
+
+.tab-btn {
+  width: 100%;
+  border: none;
+  background: transparent;
+  padding: 14px 16px;
+  border-radius: 14px;
+  text-align: left;
+  font-size: 16px;
+  cursor: pointer;
+  color: var(--text);
+}
+
+.tab-btn.active {
+  background: linear-gradient(135deg, #7c3aed, #6d28d9);
+  color: white;
+  font-weight: 700;
+  box-shadow: 0 10px 22px rgba(109, 40, 217, 0.22);
+}
+
+.sidebar-bottom {
+  margin-top: auto;
+  display: grid;
+  gap: 14px;
+}
+
+.side-card {
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 16px;
+  box-shadow: var(--shadow);
+}
+
+.side-card input {
+  width: 100%;
+  margin-bottom: 8px;
+}
+
+#signedInBox {
+  display: none;
+}
+
+#syncStatus {
+  color: var(--green);
+  font-weight: 800;
+}
+
+.small-note {
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* MAIN */
+
+.main {
+  padding: 30px;
+}
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 18px;
+  margin-bottom: 26px;
+}
+
+.welcome h1 {
+  margin: 0;
+  font-size: 32px;
+}
+
+.welcome p {
+  margin: 8px 0 0;
+  color: var(--muted);
+}
+
+.date-pill {
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 14px 18px;
+  box-shadow: var(--shadow);
+  white-space: nowrap;
+}
+
+.panel {
+  display: none;
+}
+
+.panel.active {
+  display: block;
+}
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(180px, 1fr));
+  gap: 18px;
+  margin-bottom: 24px;
+}
+
+.stat-card,
+.tool-card,
+.motivation-card {
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  padding: 24px;
+  box-shadow: var(--shadow);
+}
+
+.stat-card {
+  display: grid;
+  grid-template-columns: 70px 1fr;
+  gap: 16px;
+  align-items: center;
+}
+
+.stat-icon {
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 28px;
+}
+
+.blue-bg { background: var(--blue-soft); }
+.green-bg { background: var(--green-soft); }
+.gold-bg { background: var(--gold-soft); }
+
+.stat-title {
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.big-number {
+  font-size: 30px;
+  font-weight: 800;
+  margin-top: 4px;
+}
+
+.progress-row {
+  grid-column: 1 / -1;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.progress-track {
+  flex: 1;
+  height: 11px;
+  background: #ece8f5;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  width: 0%;
+}
+
+.blue { background: var(--blue); }
+.green { background: var(--green); }
+.gold { background: var(--gold); }
+
+.two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+  margin-bottom: 24px;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 18px;
+}
+
+.card-header h2 {
+  margin: 0;
+}
+
+.goal-label {
+  color: var(--muted);
+  font-size: 15px;
+}
+
+.message {
+  background: #faf7ff;
+  border-radius: 16px;
+  padding: 16px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+input {
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  font-size: 15px;
+}
+
+label {
+  display: inline-block;
+  margin: 10px 12px 10px 0;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+button {
+  border: none;
+  border-radius: 14px;
+  padding: 12px 16px;
+  font-size: 15px;
+  cursor: pointer;
+  margin: 6px 4px 6px 0;
+}
+
+.primary-btn {
+  background: var(--purple);
+  color: white;
+}
+
+.soft-btn {
+  background: var(--purple-soft);
+  color: var(--purple);
+}
+
+.reset-btn {
+  background: #f0edf7;
+  color: var(--muted);
+}
+
+#waterGlasses,
+#dashboardWaterGlasses {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 20px 0;
+}
+
+.glass {
+  width: 46px;
+  height: 66px;
+  border: 3px solid #9dc8ff;
+  border-radius: 8px 8px 17px 17px;
+  background: white;
+}
+
+.glass.full {
+  background: linear-gradient(to top, #58a9ff 75%, white 75%);
+}
+
+.check-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 11px;
+  margin: 24px 0;
+}
+
+.dot {
+  width: 38px;
+  height: 38px;
+  border: 2px solid #d1cae7;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+  color: white;
+}
+
+.dot.done {
+  background: var(--green);
+  border-color: var(--green);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 18px;
+  overflow: hidden;
+  border-radius: 16px;
+  background: white;
+}
+
+th,
+td {
+  padding: 13px;
+  border-bottom: 1px solid #eee;
+  text-align: center;
+}
+
+th {
+  background: #faf7ff;
+  color: var(--muted);
+}
+
+.check {
+  transform: scale(1.35);
+}
+
+.motivation-card {
+  display: grid;
+  grid-template-columns: 70px 1fr 1fr;
+  gap: 18px;
+  align-items: center;
+  background: linear-gradient(135deg, #fbf7ff, #f4fbff);
+}
+
+.heart-badge {
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  background: white;
+  display: grid;
+  place-items: center;
+  font-size: 28px;
+  box-shadow: var(--shadow);
+}
+
+.tip {
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+@media (max-width: 900px) {
+  .app {
+    grid-template-columns: 1fr;
   }
 
   .sidebar {
-    background: rgba(255, 255, 255, 0.75);
-    border: 1px solid var(--line);
-    border-radius: 26px;
-    padding: 14px;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.05);
-    height: fit-content;
-    position: sticky;
-    top: 20px;
+    border-right: none;
+    border-bottom: 1px solid var(--line);
   }
 
-  .sidebar-title {
-    font-weight: bold;
-    margin: 8px 8px 14px;
-    color: #555;
+  .nav {
+    display: flex;
+    overflow-x: auto;
   }
 
   .tab-btn {
-    width: 100%;
-    background: white;
-    border: 1px solid var(--line);
-    border-radius: 18px;
-    padding: 14px;
-    margin-bottom: 10px;
-    text-align: left;
-    font-size: 16px;
-    cursor: pointer;
-  }
-
-  .tab-btn.active {
-    background: var(--pink);
-    font-weight: bold;
-  }
-
-  .main-card {
-    background: white;
-    border-radius: 28px;
-    padding: 26px;
-    box-shadow: 0 8px 25px rgba(0,0,0,0.08);
-  }
-
-  .hero {
-    background: linear-gradient(135deg, #fff7fa, #eef7ff);
-    border: 1px solid var(--line);
-    border-radius: 26px;
-    padding: 24px;
-    margin-bottom: 22px;
-  }
-
-  .hero h1 {
-    margin: 0 0 8px;
-  }
-
-  .hero p {
-    margin: 0;
-    color: var(--muted);
-  }
-
-  .summary {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(160px, 1fr));
-    gap: 14px;
-    margin-bottom: 22px;
-  }
-
-  .summary-box {
-    background: var(--soft-pink);
-    border: 1px solid var(--line);
-    padding: 18px;
-    border-radius: 20px;
-  }
-
-  .summary-box strong {
-    display: block;
-    margin-top: 6px;
-    font-size: 22px;
-  }
-
-  .panel {
-    display: none;
-  }
-
-  .panel.active {
-    display: block;
-  }
-
-  .card {
-    padding: 22px;
-    border-radius: 24px;
-    background: var(--card);
-    border: 1px solid var(--line);
-  }
-
-  .card h2 {
-    margin-top: 0;
-  }
-
-  label {
-    display: inline-block;
-    margin: 10px 12px 10px 0;
-  }
-
-  input {
-    padding: 9px;
-    border: 1px solid #ddd;
-    border-radius: 10px;
-    width: 95px;
-    font-size: 15px;
-  }
-
-  button {
-    font-size: 16px;
-    border: none;
-    border-radius: 14px;
-    padding: 12px 16px;
-    cursor: pointer;
-    margin: 6px 4px 6px 0;
-  }
-
-  .make-btn {
-    background: var(--blue);
-  }
-
-  .reset-btn {
-    background: #eee;
-  }
-
-  #waterGlasses {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 12px;
-    margin: 22px 0;
-  }
-
-  .glass {
-    width: 48px;
-    height: 72px;
-    border: 3px solid #7fb8d8;
-    border-radius: 8px 8px 18px 18px;
-    background: white;
-  }
-
-  .glass.full {
-    background: linear-gradient(to top, #8bd3ff 75%, white 75%);
-  }
-
-  .message {
-    background: var(--soft-pink);
-    padding: 14px;
-    border-radius: 16px;
-    color: #555;
-  }
-
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 18px;
-    background: white;
-    border-radius: 16px;
-    overflow: hidden;
-  }
-
-  th,
-  td {
-    border-bottom: 1px solid #eee;
-    padding: 12px;
+    min-width: 145px;
     text-align: center;
   }
 
-  th {
-    background: var(--soft-pink);
+  .summary-grid,
+  .two-col,
+  .motivation-card {
+    grid-template-columns: 1fr;
   }
 
-  .check {
-    transform: scale(1.35);
+  .topbar {
+    flex-direction: column;
+    align-items: flex-start;
   }
-
-  @media (max-width: 760px) {
-    .dashboard {
-      grid-template-columns: 1fr;
-    }
-
-    .sidebar {
-      position: static;
-      display: flex;
-      overflow-x: auto;
-      gap: 10px;
-    }
-
-    .sidebar-title {
-      display: none;
-    }
-
-    .tab-btn {
-      min-width: 130px;
-      margin-bottom: 0;
-      text-align: center;
-    }
-
-    .summary {
-      grid-template-columns: 1fr;
-    }
-  }
+}
 </style>
 </head>
 
 <body>
 
-<p id="testResult"></p>
-  <div id="authBox">
-  <input id="emailInput" type="email" placeholder="Email">
-  <input id="passwordInput" type="password" placeholder="Password">
+<div class="app">
 
-  <button id="signUpBtn">Create Account</button>
-  <button id="signInBtn">Sign In</button>
-  <button id="signOutBtn">Sign Out</button>
+  <aside class="sidebar">
+    <div class="logo">
+      <div class="logo-icon">♡</div>
+      <div>Today Health<br>Dashboard</div>
+    </div>
 
-  <p id="authMessage"></p>
-    <p id="syncStatus">☁ Not synced yet</p>
-</div>
-<div class="app-shell">
-  <div class="dashboard">
+    <div class="nav">
+      <button class="tab-btn active" data-panel="todayPanel">🏠 Dashboard</button>
+      <button class="tab-btn" data-panel="waterPanel">💧 Water Tracker</button>
+      <button class="tab-btn" data-panel="stepsPanel">🚶 Step Tracker</button>
+    </div>
 
-    <aside class="sidebar">
-      <div class="sidebar-title">Daily Tools</div>
-      <button class="tab-btn active" data-panel="todayPanel">🏠 Today</button>
-      <button class="tab-btn" data-panel="waterPanel">💧 Water</button>
-      <button class="tab-btn" data-panel="stepsPanel">🚶 Steps</button>
-    </aside>
+    <div class="sidebar-bottom">
 
-    <main class="main-card">
-
-      <section id="todayPanel" class="panel active">
-        <div class="hero">
-          <h1>Today Dashboard</h1>
-          <p>A gentle daily reset for water and steps.</p>
+      <div class="side-card">
+        <div id="signedOutBox">
+          <input id="emailInput" type="email" placeholder="Email">
+          <input id="passwordInput" type="password" placeholder="Password">
+          <button id="signUpBtn" class="soft-btn">Create Account</button>
+          <button id="signInBtn" class="primary-btn">Sign In</button>
         </div>
 
-        <div class="summary">
-          <div class="summary-box">
-            💧 Water
-            <strong id="waterSummary">0/8</strong>
+        <div id="signedInBox">
+          <p class="small-note">Signed in as</p>
+          <strong id="userEmail">your@email.com</strong><br><br>
+          <button id="signOutBtn" class="soft-btn">Sign Out</button>
+        </div>
+
+        <p id="authMessage" class="small-note"></p>
+      </div>
+
+      <div class="side-card">
+        <div id="syncStatus">☁ Not synced yet</div>
+        <p id="lastSynced" class="small-note">Last synced: not yet</p>
+      </div>
+
+      <div class="side-card small-note">
+        ♡ Small steps, daily choices, big changes.
+      </div>
+
+    </div>
+  </aside>
+
+  <main class="main">
+
+    <div class="topbar">
+      <div class="welcome">
+        <h1>Welcome back, Sherrie! 💜</h1>
+        <p>Here’s your progress for today.</p>
+      </div>
+
+      <div class="date-pill" id="datePill">Today</div>
+    </div>
+
+    <section id="todayPanel" class="panel active">
+
+      <div class="summary-grid">
+        <div class="stat-card">
+          <div class="stat-icon blue-bg">💧</div>
+          <div>
+            <div class="stat-title">Water</div>
+            <div class="big-number" id="waterSummary">0/8</div>
+            <div class="small-note">glasses</div>
+          </div>
+          <div class="progress-row">
+            <div class="progress-track"><div id="waterProgressFill" class="progress-fill blue"></div></div>
+            <span id="waterPercentLabel">0%</span>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon green-bg">🚶</div>
+          <div>
+            <div class="stat-title">Steps</div>
+            <div class="big-number" id="stepSummary">0/0</div>
+            <div class="small-note">checkpoints</div>
+          </div>
+          <div class="progress-row">
+            <div class="progress-track"><div id="stepProgressFill" class="progress-fill green"></div></div>
+            <span id="stepPercentLabel">0%</span>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon gold-bg">⭐</div>
+          <div>
+            <div class="stat-title">Overall Progress</div>
+            <div class="big-number" id="overallSummary">0%</div>
+            <div class="small-note" id="overallMessage">Keep going!</div>
+          </div>
+          <div class="progress-row">
+            <div class="progress-track"><div id="overallProgressFill" class="progress-fill gold"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="two-col">
+        <div class="tool-card">
+          <div class="card-header">
+            <h2>💧 Water Tracker</h2>
+            <span class="goal-label">Goal: <span id="waterGoalLabel">8</span> glasses</span>
           </div>
 
-          <div class="summary-box">
-            🚶 Steps
-            <strong id="stepSummary">0 checkpoints</strong>
+          <div id="dashboardWaterGlasses"></div>
+          <p class="message" id="dashboardWaterText">Complete your water checkpoints through the day.</p>
+          <button class="primary-btn shortcut-btn" data-panel="waterPanel">Go to Water Tracker →</button>
+        </div>
+
+        <div class="tool-card">
+          <div class="card-header">
+            <h2>🚶 Step Tracker</h2>
+            <span class="goal-label">Goal: <span id="stepGoalLabel">8,000</span> steps</span>
           </div>
-        </div>
 
-        <div class="card">
-          <h2>Today’s Focus</h2>
-          <p class="message">
-            Open each tab, follow your checkpoints, and let the little wins add up.
-          </p>
+          <div class="check-row" id="dashboardStepDots"></div>
+          <p class="message" id="dashboardStepText">Check your Fitbit targets by time.</p>
+          <button class="primary-btn shortcut-btn" data-panel="stepsPanel">Go to Step Tracker →</button>
         </div>
-      </section>
+      </div>
 
-      <section id="waterPanel" class="panel">
-        <div class="card">
+      <div class="motivation-card">
+        <div class="heart-badge">♡</div>
+        <div>
+          <strong>You’re building healthy habits one day at a time.</strong>
+          <div class="tip">Be proud of every choice you make.</div>
+        </div>
+        <div class="tip">
+          💧 Hydration tip: keep water nearby.<br>
+          🚶 Movement tip: short walks add up.
+        </div>
+      </div>
+
+    </section>
+
+    <section id="waterPanel" class="panel">
+      <div class="tool-card">
+        <div class="card-header">
           <h2>💧 Water Goal</h2>
-
-          <label>
-            Water goal:
-            <input id="waterGoalInput" type="number" value="8">
-          </label>
-
-          <label>
-            Start hour:
-            <input id="waterStartInput" type="number" value="8" min="0" max="23">
-          </label>
-
-          <label>
-            End hour:
-            <input id="waterEndInput" type="number" value="16" min="1" max="24">
-          </label>
-
-          <br>
-
-          <button id="makeWaterPlan" class="make-btn">Make Water Plan</button>
-          <button id="resetWater" class="reset-btn">Reset Water</button>
-
-          <div id="waterGlasses"></div>
-
-          <p id="waterMessage" class="message"></p>
-
-          <table id="waterTable">
-            <thead>
-              <tr>
-                <th>By Time</th>
-                <th>Water Target</th>
-                <th>Done?</th>
-              </tr>
-            </thead>
-            <tbody></tbody>
-          </table>
         </div>
-      </section>
 
-      <section id="stepsPanel" class="panel">
-        <div class="card">
+        <label>Water goal:
+          <input id="waterGoalInput" type="number" value="8">
+        </label>
+
+        <label>Start hour:
+          <input id="waterStartInput" type="number" value="8" min="0" max="23">
+        </label>
+
+        <label>End hour:
+          <input id="waterEndInput" type="number" value="16" min="1" max="24">
+        </label>
+
+        <br>
+
+        <button id="makeWaterPlan" class="primary-btn">Make Water Plan</button>
+        <button id="resetWater" class="reset-btn">Reset Water</button>
+
+        <div id="waterGlasses"></div>
+        <p id="waterMessage" class="message"></p>
+
+        <table id="waterTable">
+          <thead>
+            <tr>
+              <th>By Time</th>
+              <th>Water Target</th>
+              <th>Done?</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="stepsPanel" class="panel">
+      <div class="tool-card">
+        <div class="card-header">
           <h2>🚶 Step Goal</h2>
-
-          <label>
-            Step goal:
-            <input id="stepGoalInput" type="number" value="8000">
-          </label>
-
-          <label>
-            Start hour:
-            <input id="startHourInput" type="number" value="9" min="0" max="23">
-          </label>
-
-          <label>
-            End hour:
-            <input id="endHourInput" type="number" value="17" min="1" max="24">
-          </label>
-
-          <br>
-
-          <button id="makeStepPlan" class="make-btn">Make Step Plan</button>
-          <button id="resetSteps" class="reset-btn">Reset Steps</button>
-
-          <p id="stepMessage" class="message"></p>
-
-          <table id="stepTable">
-            <thead>
-              <tr>
-                <th>By Time</th>
-                <th>Fitbit Should Show</th>
-                <th>Done?</th>
-              </tr>
-            </thead>
-            <tbody></tbody>
-          </table>
         </div>
-      </section>
 
-    </main>
-  </div>
+        <label>Step goal:
+          <input id="stepGoalInput" type="number" value="8000">
+        </label>
+
+        <label>Start hour:
+          <input id="startHourInput" type="number" value="9" min="0" max="23">
+        </label>
+
+        <label>End hour:
+          <input id="endHourInput" type="number" value="17" min="1" max="24">
+        </label>
+
+        <br>
+
+        <button id="makeStepPlan" class="primary-btn">Make Step Plan</button>
+        <button id="resetSteps" class="reset-btn">Reset Steps</button>
+
+        <p id="stepMessage" class="message"></p>
+
+        <table id="stepTable">
+          <thead>
+            <tr>
+              <th>By Time</th>
+              <th>Fitbit Should Show</th>
+              <th>Done?</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
 </div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <script>
 const SUPABASE_URL = "https://eqnqzfghzzlnhnvejbiv.supabase.co";
 const SUPABASE_KEY = "sb_publishable_qY64imdONDWDJykNFY-CCw_JaWoFpp5";
 
-const supabaseClient = supabase.createClient(
-  SUPABASE_URL,
-  SUPABASE_KEY
-);
-  const emailInput = document.getElementById("emailInput");
-const passwordInput = document.getElementById("passwordInput");
-const authMessage = document.getElementById("authMessage");
-  const syncStatus = document.getElementById("syncStatus");
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 let currentUser = null;
 
+const emailInput = document.getElementById("emailInput");
+const passwordInput = document.getElementById("passwordInput");
+const authMessage = document.getElementById("authMessage");
+const syncStatus = document.getElementById("syncStatus");
+const lastSynced = document.getElementById("lastSynced");
+const signedOutBox = document.getElementById("signedOutBox");
+const signedInBox = document.getElementById("signedInBox");
+const userEmail = document.getElementById("userEmail");
+
+function getTodayKey() {
+  const d = new Date();
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return year + "-" + month + "-" + day;
+}
+
+const todayKey = getTodayKey();
+
+function dailyKey(name) {
+  return name + "-" + todayKey;
+}
+
+document.getElementById("datePill").textContent =
+  new Date().toLocaleDateString(undefined, {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+    year: "numeric"
+  });
+
+function formatHour(hour) {
+  const suffix = hour >= 12 ? "PM" : "AM";
+  let displayHour = hour % 12;
+  if (displayHour === 0) displayHour = 12;
+  return displayHour + ":00 " + suffix;
+}
+
+function updateAuthDisplay() {
+  if (currentUser) {
+    signedOutBox.style.display = "none";
+    signedInBox.style.display = "block";
+    userEmail.textContent = currentUser.email;
+  } else {
+    signedOutBox.style.display = "block";
+    signedInBox.style.display = "none";
+  }
+}
+
+/* AUTH */
+
 document.getElementById("signUpBtn").addEventListener("click", async function() {
-  const { data, error } = await supabaseClient.auth.signUp({
+  const { error } = await supabaseClient.auth.signUp({
     email: emailInput.value,
     password: passwordInput.value
   });
@@ -434,192 +744,215 @@ document.getElementById("signInBtn").addEventListener("click", async function() 
     return;
   }
 
-currentUser = data.user;
-authMessage.textContent = "Signed in.";
-await loadCloudData();});
+  currentUser = data.user;
+  authMessage.textContent = "Signed in.";
+  updateAuthDisplay();
+  await loadCloudData();
+});
 
 document.getElementById("signOutBtn").addEventListener("click", async function() {
   await supabaseClient.auth.signOut();
   currentUser = null;
   authMessage.textContent = "Signed out.";
+  syncStatus.textContent = "☁ Not synced";
+  lastSynced.textContent = "Last synced: not yet";
+  updateAuthDisplay();
 });
-  const todayKey = new Date().toISOString().slice(0, 10);
 
-  function dailyKey(name) {
-    return name + "-" + todayKey;
-  }
+/* TABS */
 
-  function formatHour(hour) {
-    const suffix = hour >= 12 ? "PM" : "AM";
-    let displayHour = hour % 12;
+const tabButtons = document.querySelectorAll(".tab-btn");
+const panels = document.querySelectorAll(".panel");
 
-    if (displayHour === 0) {
-      displayHour = 12;
-    }
+function openPanel(panelId) {
+  tabButtons.forEach(btn => btn.classList.remove("active"));
+  panels.forEach(panel => panel.classList.remove("active"));
 
-    return displayHour + ":00 " + suffix;
-  }
+  const matchingButton = document.querySelector(`.tab-btn[data-panel="${panelId}"]`);
+  if (matchingButton) matchingButton.classList.add("active");
 
-  /* TABS */
+  document.getElementById(panelId).classList.add("active");
+}
 
-  const tabButtons = document.querySelectorAll(".tab-btn");
-  const panels = document.querySelectorAll(".panel");
-
-  tabButtons.forEach(function(button) {
-    button.addEventListener("click", function() {
-      tabButtons.forEach(function(btn) {
-        btn.classList.remove("active");
-      });
-
-      panels.forEach(function(panel) {
-        panel.classList.remove("active");
-      });
-
-      button.classList.add("active");
-
-      const panelId = button.dataset.panel;
-      document.getElementById(panelId).classList.add("active");
-    });
+tabButtons.forEach(function(button) {
+  button.addEventListener("click", function() {
+    openPanel(button.dataset.panel);
   });
+});
 
-  function updateSummary() {
-    const waterChecks = document.querySelectorAll(".water-check");
-    const waterChecked = document.querySelectorAll(".water-check:checked");
-
-    const stepChecks = document.querySelectorAll(".step-check");
-    const stepChecked = document.querySelectorAll(".step-check:checked");
-
-    document.getElementById("waterSummary").textContent =
-      waterChecked.length + "/" + waterChecks.length;
-
-    document.getElementById("stepSummary").textContent =
-      stepChecked.length + "/" + stepChecks.length + " checkpoints";
-  }
-
-  /* WATER */
-
-  const waterGoalInput = document.getElementById("waterGoalInput");
-  const waterStartInput = document.getElementById("waterStartInput");
-  const waterEndInput = document.getElementById("waterEndInput");
-  const makeWaterPlanBtn = document.getElementById("makeWaterPlan");
-  const resetWaterBtn = document.getElementById("resetWater");
-  const waterGlasses = document.getElementById("waterGlasses");
-  const waterTableBody = document.querySelector("#waterTable tbody");
-  const waterMessage = document.getElementById("waterMessage");
-
-  let savedWaterChecks =
-    JSON.parse(localStorage.getItem(dailyKey("savedWaterChecks"))) || [];
-
-  waterGoalInput.value =
-    localStorage.getItem("waterGoal") || waterGoalInput.value;
-
-  waterStartInput.value =
-    localStorage.getItem("waterStart") || waterStartInput.value;
-
-  waterEndInput.value =
-    localStorage.getItem("waterEnd") || waterEndInput.value;
-
-  function saveWaterSettings() {
-    localStorage.setItem("waterGoal", waterGoalInput.value);
-    localStorage.setItem("waterStart", waterStartInput.value);
-    localStorage.setItem("waterEnd", waterEndInput.value);
-  }
-
-  function saveWaterChecks() {
-    const checks = document.querySelectorAll(".water-check");
-
-    const checkData = Array.from(checks).map(function(check) {
-      return check.checked;
-    });
-
-    localStorage.setItem(
-      dailyKey("savedWaterChecks"),
-      JSON.stringify(checkData)
-    );
-  }
-
-  function updateWaterGlasses() {
-    const waterGoal = Number(waterGoalInput.value);
-    const checked = document.querySelectorAll(".water-check:checked").length;
-
-    waterGlasses.innerHTML = "";
-
-    for (let i = 0; i < waterGoal; i++) {
-      const glass = document.createElement("div");
-      glass.className = "glass";
-
-      if (i < checked) {
-        glass.classList.add("full");
-      }
-
-      waterGlasses.appendChild(glass);
-    }
-
-    if (waterGoal > 0 && checked === waterGoal) {
-      waterMessage.textContent = "🎉 Water goal completed!";
-    } else {
-      waterMessage.textContent = "Follow the checkpoints to finish your water goal.";
-    }
-
-    updateSummary();
-  }
-
-  function makeWaterPlan() {
-    const waterGoal = Number(waterGoalInput.value);
-    const startHour = Number(waterStartInput.value);
-    const endHour = Number(waterEndInput.value);
-
-    waterTableBody.innerHTML = "";
-
-    if (!waterGoal || endHour <= startHour) {
-      waterMessage.textContent = "Check your water goal and times, then try again.";
-      return;
-    }
-
-    saveWaterSettings();
-
-    const totalHours = endHour - startHour;
-
-    for (let glassNumber = 1; glassNumber <= waterGoal; glassNumber++) {
-      const targetHour =
-        startHour + Math.ceil((totalHours / waterGoal) * glassNumber);
-
-      const isChecked =
-        savedWaterChecks[glassNumber - 1] === true ? "checked" : "";
-
-      const row = document.createElement("tr");
-
-      row.innerHTML = `
-        <td>${formatHour(targetHour)}</td>
-        <td>${glassNumber} glass${glassNumber === 1 ? "" : "es"}</td>
-        <td><input type="checkbox" class="check water-check" ${isChecked}></td>
-      `;
-
-      waterTableBody.appendChild(row);
-    }
-
-    updateWaterGlasses();
-  }
-
-  makeWaterPlanBtn.addEventListener("click", function() {
-    savedWaterChecks = [];
-    localStorage.setItem(
-      dailyKey("savedWaterChecks"),
-      JSON.stringify(savedWaterChecks)
-    );
-    makeWaterPlan();
+document.querySelectorAll(".shortcut-btn").forEach(function(button) {
+  button.addEventListener("click", function() {
+    openPanel(button.dataset.panel);
   });
+});
 
-  resetWaterBtn.addEventListener("click", function() {
-    savedWaterChecks = [];
-    localStorage.setItem(
-      dailyKey("savedWaterChecks"),
-      JSON.stringify(savedWaterChecks)
-    );
-    makeWaterPlan();
-  });
+/* SUMMARY */
 
- waterTableBody.addEventListener("change", function(event) {
+function updateSummary() {
+  const waterChecks = document.querySelectorAll(".water-check");
+  const waterChecked = document.querySelectorAll(".water-check:checked");
+
+  const stepChecks = document.querySelectorAll(".step-check");
+  const stepChecked = document.querySelectorAll(".step-check:checked");
+
+  const waterTotal = waterChecks.length || Number(waterGoalInput.value) || 0;
+  const waterDone = waterChecked.length;
+
+  const stepTotal = stepChecks.length;
+  const stepDone = stepChecked.length;
+
+  const waterPercent = waterTotal ? Math.round((waterDone / waterTotal) * 100) : 0;
+  const stepPercent = stepTotal ? Math.round((stepDone / stepTotal) * 100) : 0;
+  const overallPercent = Math.round((waterPercent + stepPercent) / 2);
+
+  document.getElementById("waterSummary").textContent = waterDone + "/" + waterTotal;
+  document.getElementById("stepSummary").textContent = stepDone + "/" + stepTotal;
+  document.getElementById("overallSummary").textContent = overallPercent + "%";
+
+  document.getElementById("waterPercentLabel").textContent = waterPercent + "%";
+  document.getElementById("stepPercentLabel").textContent = stepPercent + "%";
+
+  document.getElementById("waterProgressFill").style.width = waterPercent + "%";
+  document.getElementById("stepProgressFill").style.width = stepPercent + "%";
+  document.getElementById("overallProgressFill").style.width = overallPercent + "%";
+
+  document.getElementById("waterGoalLabel").textContent = waterTotal;
+  document.getElementById("stepGoalLabel").textContent =
+    Number(stepGoalInput.value).toLocaleString();
+
+  document.getElementById("dashboardWaterText").textContent =
+    waterDone + " of " + waterTotal + " glasses completed.";
+
+  document.getElementById("dashboardStepText").textContent =
+    stepDone + " of " + stepTotal + " checkpoints completed.";
+
+  document.getElementById("overallMessage").textContent =
+    overallPercent === 100 ? "Amazing work!" :
+    overallPercent >= 50 ? "Keep going!" :
+    "Small wins count.";
+
+  renderDashboardWater();
+  renderDashboardSteps();
+}
+
+/* WATER */
+
+const waterGoalInput = document.getElementById("waterGoalInput");
+const waterStartInput = document.getElementById("waterStartInput");
+const waterEndInput = document.getElementById("waterEndInput");
+const makeWaterPlanBtn = document.getElementById("makeWaterPlan");
+const resetWaterBtn = document.getElementById("resetWater");
+const waterGlasses = document.getElementById("waterGlasses");
+const waterTableBody = document.querySelector("#waterTable tbody");
+const waterMessage = document.getElementById("waterMessage");
+
+let savedWaterChecks =
+  JSON.parse(localStorage.getItem(dailyKey("savedWaterChecks"))) || [];
+
+waterGoalInput.value = localStorage.getItem("waterGoal") || waterGoalInput.value;
+waterStartInput.value = localStorage.getItem("waterStart") || waterStartInput.value;
+waterEndInput.value = localStorage.getItem("waterEnd") || waterEndInput.value;
+
+function saveWaterSettings() {
+  localStorage.setItem("waterGoal", waterGoalInput.value);
+  localStorage.setItem("waterStart", waterStartInput.value);
+  localStorage.setItem("waterEnd", waterEndInput.value);
+}
+
+function saveWaterChecks() {
+  const checks = document.querySelectorAll(".water-check");
+  const checkData = Array.from(checks).map(check => check.checked);
+  localStorage.setItem(dailyKey("savedWaterChecks"), JSON.stringify(checkData));
+}
+
+function updateWaterGlasses() {
+  const waterGoal = Number(waterGoalInput.value);
+  const checked = document.querySelectorAll(".water-check:checked").length;
+
+  waterGlasses.innerHTML = "";
+
+  for (let i = 0; i < waterGoal; i++) {
+    const glass = document.createElement("div");
+    glass.className = "glass";
+    if (i < checked) glass.classList.add("full");
+    waterGlasses.appendChild(glass);
+  }
+
+  waterMessage.textContent =
+    waterGoal > 0 && checked === waterGoal
+      ? "🎉 Water goal completed!"
+      : "Follow the checkpoints to finish your water goal.";
+
+  updateSummary();
+}
+
+function renderDashboardWater() {
+  const box = document.getElementById("dashboardWaterGlasses");
+  const waterGoal = Number(waterGoalInput.value);
+  const checked = document.querySelectorAll(".water-check:checked").length;
+
+  box.innerHTML = "";
+
+  for (let i = 0; i < waterGoal; i++) {
+    const glass = document.createElement("div");
+    glass.className = "glass";
+    if (i < checked) glass.classList.add("full");
+    box.appendChild(glass);
+  }
+}
+
+function makeWaterPlan() {
+  const waterGoal = Number(waterGoalInput.value);
+  const startHour = Number(waterStartInput.value);
+  const endHour = Number(waterEndInput.value);
+
+  waterTableBody.innerHTML = "";
+
+  if (!waterGoal || endHour <= startHour) {
+    waterMessage.textContent = "Check your water goal and times, then try again.";
+    return;
+  }
+
+  saveWaterSettings();
+
+  const totalHours = endHour - startHour;
+
+  for (let glassNumber = 1; glassNumber <= waterGoal; glassNumber++) {
+    const targetHour =
+      startHour + Math.ceil((totalHours / waterGoal) * glassNumber);
+
+    const isChecked =
+      savedWaterChecks[glassNumber - 1] === true ? "checked" : "";
+
+    const row = document.createElement("tr");
+
+    row.innerHTML = `
+      <td>${formatHour(targetHour)}</td>
+      <td>${glassNumber} glass${glassNumber === 1 ? "" : "es"}</td>
+      <td><input type="checkbox" class="check water-check" ${isChecked}></td>
+    `;
+
+    waterTableBody.appendChild(row);
+  }
+
+  updateWaterGlasses();
+}
+
+makeWaterPlanBtn.addEventListener("click", function() {
+  savedWaterChecks = [];
+  localStorage.setItem(dailyKey("savedWaterChecks"), JSON.stringify(savedWaterChecks));
+  makeWaterPlan();
+  saveCloudData();
+});
+
+resetWaterBtn.addEventListener("click", function() {
+  savedWaterChecks = [];
+  localStorage.setItem(dailyKey("savedWaterChecks"), JSON.stringify(savedWaterChecks));
+  makeWaterPlan();
+  saveCloudData();
+});
+
+waterTableBody.addEventListener("change", function(event) {
   if (event.target.classList.contains("water-check")) {
     saveWaterChecks();
     updateWaterGlasses();
@@ -627,92 +960,151 @@ document.getElementById("signOutBtn").addEventListener("click", async function()
   }
 });
 
-  /* STEPS */
+/* STEPS */
 
-  const stepGoalInput = document.getElementById("stepGoalInput");
-  const startHourInput = document.getElementById("startHourInput");
-  const endHourInput = document.getElementById("endHourInput");
-  const makeStepPlanBtn = document.getElementById("makeStepPlan");
-  const resetStepsBtn = document.getElementById("resetSteps");
-  const stepTableBody = document.querySelector("#stepTable tbody");
-  const stepMessage = document.getElementById("stepMessage");
+const stepGoalInput = document.getElementById("stepGoalInput");
+const startHourInput = document.getElementById("startHourInput");
+const endHourInput = document.getElementById("endHourInput");
+const makeStepPlanBtn = document.getElementById("makeStepPlan");
+const resetStepsBtn = document.getElementById("resetSteps");
+const stepTableBody = document.querySelector("#stepTable tbody");
+const stepMessage = document.getElementById("stepMessage");
 
-  let savedStepChecks =
-    JSON.parse(localStorage.getItem(dailyKey("savedStepChecks"))) || [];
+let savedStepChecks =
+  JSON.parse(localStorage.getItem(dailyKey("savedStepChecks"))) || [];
 
-  stepGoalInput.value =
-    localStorage.getItem("stepGoal") || stepGoalInput.value;
+stepGoalInput.value = localStorage.getItem("stepGoal") || stepGoalInput.value;
+startHourInput.value = localStorage.getItem("startHour") || startHourInput.value;
+endHourInput.value = localStorage.getItem("endHour") || endHourInput.value;
 
-  startHourInput.value =
-    localStorage.getItem("startHour") || startHourInput.value;
+function saveStepSettings() {
+  localStorage.setItem("stepGoal", stepGoalInput.value);
+  localStorage.setItem("startHour", startHourInput.value);
+  localStorage.setItem("endHour", endHourInput.value);
+}
 
-  endHourInput.value =
-    localStorage.getItem("endHour") || endHourInput.value;
+function saveStepChecks() {
+  const checks = document.querySelectorAll(".step-check");
+  const checkData = Array.from(checks).map(check => check.checked);
+  localStorage.setItem(dailyKey("savedStepChecks"), JSON.stringify(checkData));
+}
 
-  function saveStepSettings() {
-    localStorage.setItem("stepGoal", stepGoalInput.value);
-    localStorage.setItem("startHour", startHourInput.value);
-    localStorage.setItem("endHour", endHourInput.value);
+function renderDashboardSteps() {
+  const box = document.getElementById("dashboardStepDots");
+  const checks = document.querySelectorAll(".step-check");
+  const checked = document.querySelectorAll(".step-check:checked").length;
+
+  box.innerHTML = "";
+
+  checks.forEach(function(_, index) {
+    const dot = document.createElement("div");
+    dot.className = "dot";
+
+    if (index < checked) {
+      dot.classList.add("done");
+      dot.textContent = "✓";
+    }
+
+    box.appendChild(dot);
+  });
+}
+
+function makeStepPlan() {
+  const stepGoal = Number(stepGoalInput.value);
+  const startHour = Number(startHourInput.value);
+  const endHour = Number(endHourInput.value);
+
+  stepTableBody.innerHTML = "";
+
+  if (!stepGoal || endHour <= startHour) {
+    stepMessage.textContent = "Check your step goal and times, then try again.";
+    return;
   }
 
-  function saveStepChecks() {
-    const checks = document.querySelectorAll(".step-check");
+  saveStepSettings();
 
-    const checkData = Array.from(checks).map(function(check) {
-      return check.checked;
-    });
+  const totalHours = endHour - startHour;
+  const stepsPerHour = Math.ceil(stepGoal / totalHours);
 
-    localStorage.setItem(
-      dailyKey("savedStepChecks"),
-      JSON.stringify(checkData)
-    );
+  for (let i = 1; i <= totalHours; i++) {
+    const targetTime = startHour + i;
+    let cumulativeSteps = stepsPerHour * i;
+
+    if (cumulativeSteps > stepGoal) {
+      cumulativeSteps = stepGoal;
+    }
+
+    const isChecked =
+      savedStepChecks[i - 1] === true ? "checked" : "";
+
+    const row = document.createElement("tr");
+
+    row.innerHTML = `
+      <td>${formatHour(targetTime)}</td>
+      <td>${cumulativeSteps.toLocaleString()} steps</td>
+      <td><input type="checkbox" class="check step-check" ${isChecked}></td>
+    `;
+
+    stepTableBody.appendChild(row);
   }
 
-  function makeStepPlan() {
+  checkStepParty();
+  updateSummary();
+}
+
+function checkStepParty() {
+  const checks = document.querySelectorAll(".step-check");
+  const checked = document.querySelectorAll(".step-check:checked");
+
+  if (checks.length > 0 && checks.length === checked.length) {
+    stepMessage.textContent = "🎉 Step goal plan completed!";
+  } else {
     const stepGoal = Number(stepGoalInput.value);
     const startHour = Number(startHourInput.value);
     const endHour = Number(endHourInput.value);
-
-    stepTableBody.innerHTML = "";
-
-    if (!stepGoal || endHour <= startHour) {
-      stepMessage.textContent = "Check your step goal and times, then try again.";
-      return;
-    }
-
-    saveStepSettings();
-
     const totalHours = endHour - startHour;
     const stepsPerHour = Math.ceil(stepGoal / totalHours);
 
-    for (let i = 1; i <= totalHours; i++) {
-      const targetTime = startHour + i;
-      let cumulativeSteps = stepsPerHour * i;
+    stepMessage.textContent =
+      "Aim for about " + stepsPerHour.toLocaleString() + " steps each hour.";
+  }
+}
 
-      if (cumulativeSteps > stepGoal) {
-        cumulativeSteps = stepGoal;
-      }
+makeStepPlanBtn.addEventListener("click", function() {
+  savedStepChecks = [];
+  localStorage.setItem(dailyKey("savedStepChecks"), JSON.stringify(savedStepChecks));
+  makeStepPlan();
+  saveCloudData();
+});
 
-      const isChecked =
-        savedStepChecks[i - 1] === true ? "checked" : "";
+resetStepsBtn.addEventListener("click", function() {
+  savedStepChecks = [];
+  localStorage.setItem(dailyKey("savedStepChecks"), JSON.stringify(savedStepChecks));
+  makeStepPlan();
+  saveCloudData();
+});
 
-      const row = document.createElement("tr");
-
-      row.innerHTML = `
-        <td>${formatHour(targetTime)}</td>
-        <td>${cumulativeSteps.toLocaleString()} steps</td>
-        <td><input type="checkbox" class="check step-check" ${isChecked}></td>
-      `;
-
-      stepTableBody.appendChild(row);
-    }
-
+stepTableBody.addEventListener("change", function(event) {
+  if (event.target.classList.contains("step-check")) {
+    saveStepChecks();
     checkStepParty();
     updateSummary();
+    saveCloudData();
   }
+});
+
+/* CLOUD */
+
+function markSynced() {
+  syncStatus.textContent = "☁ Synced";
+  lastSynced.textContent = "Last synced: just now";
+}
+
 async function saveCloudData() {
   if (!currentUser) return;
-syncStatus.textContent = "☁ Saving...";
+
+  syncStatus.textContent = "☁ Saving...";
+
   const waterChecks = Array.from(document.querySelectorAll(".water-check")).map(
     check => check.checked
   );
@@ -743,13 +1135,14 @@ syncStatus.textContent = "☁ Saving...";
       { onConflict: "user_id,date" }
     );
 
-if (error) {
-  console.log("Cloud save error:", error.message);
-  syncStatus.textContent = "⚠️ Sync error";
-  return;
-}
+  if (error) {
+    console.log("Cloud save error:", error.message);
+    syncStatus.textContent = "⚠️ Sync error";
+    return;
+  }
 
-syncStatus.textContent = "☁ Synced";}
+  markSynced();
+}
 
 async function loadCloudData() {
   if (!currentUser) return;
@@ -763,10 +1156,12 @@ async function loadCloudData() {
 
   if (error) {
     console.log("Cloud load error:", error.message);
+    syncStatus.textContent = "⚠️ Sync error";
     return;
   }
 
   if (!data) {
+    updateSummary();
     return;
   }
 
@@ -783,85 +1178,28 @@ async function loadCloudData() {
   makeWaterPlan();
   makeStepPlan();
   updateSummary();
-  syncStatus.textContent = "☁ Synced";
-}  
-  function checkStepParty() {
-    const checks = document.querySelectorAll(".step-check");
-    const checked = document.querySelectorAll(".step-check:checked");
+  markSynced();
+}
 
-    if (checks.length > 0 && checks.length === checked.length) {
-      stepMessage.textContent = "🎉 Step goal plan completed!";
-    } else {
-      const stepGoal = Number(stepGoalInput.value);
-      const startHour = Number(startHourInput.value);
-      const endHour = Number(endHourInput.value);
-      const totalHours = endHour - startHour;
-      const stepsPerHour = Math.ceil(stepGoal / totalHours);
-
-      stepMessage.textContent =
-        "Aim for about " + stepsPerHour.toLocaleString() + " steps each hour.";
-    }
-  }
-
-  makeStepPlanBtn.addEventListener("click", function() {
-    savedStepChecks = [];
-    localStorage.setItem(
-      dailyKey("savedStepChecks"),
-      JSON.stringify(savedStepChecks)
-    );
-    makeStepPlan();
-  });
-
-  resetStepsBtn.addEventListener("click", function() {
-    savedStepChecks = [];
-    localStorage.setItem(
-      dailyKey("savedStepChecks"),
-      JSON.stringify(savedStepChecks)
-    );
-    makeStepPlan();
-  });
-
-stepTableBody.addEventListener("change", function(event) {
-  if (event.target.classList.contains("step-check")) {
-    saveStepChecks();
-    checkStepParty();
-    updateSummary();
-    saveCloudData();
-  }
-});
-  /* START APP */
 async function checkSavedSession() {
   const { data } = await supabaseClient.auth.getSession();
 
   if (data.session) {
     currentUser = data.session.user;
     authMessage.textContent = "Signed in.";
+    updateAuthDisplay();
     await loadCloudData();
+  } else {
+    updateAuthDisplay();
   }
 }
-  makeWaterPlan();
+
+/* START */
+
+makeWaterPlan();
 makeStepPlan();
 updateSummary();
 checkSavedSession();
-  document
-  .getElementById("testSupabase")
-  .addEventListener("click", async function () {
-
-    const { data, error } =
-      await supabaseClient
-        .from("daily_health")
-        .select("*")
-        .limit(1);
-
-    if (error) {
-      document.getElementById("testResult").textContent =
-        "Error: " + error.message;
-      return;
-    }
-
-    document.getElementById("testResult").textContent =
-      "✅ Connected to Supabase";
-  });
 </script>
 
 </body>
