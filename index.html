@@ -7,656 +7,547 @@
    Today Health Dashboard
   </title>
   <!--
-Version 1.3.0.3.2
+Version 1.3.0.4
 Date: 2026-06-14
 
 Changes:
-- Beautified source formatting for easier editing in GitHub web editor
-- Improved CSS indentation
-- Improved JavaScript indentation and line spacing
-- No functionality changes
-- Password recovery from v1.3.0.3 retained
-- Unified dashboard and timeline scroll fix retained
+- Improved password reset error messages
+- Added friendlier message for email rate limits
+- Added clearer password reset success message
+- Kept separate reset email field in Password Help
+- Kept password recovery flow from v1.3.0.3
+- Kept unified dashboard and timeline scroll fix
 - Supabase sync retained
 
 Previous Version:
-- v1.3.0.3.1 Reformat source code
+- v1.3.0.3.2 Beautify source formatting
 -->
   <style>
-:root {
-  --bg:#f7f4fb;
-  --card:#fff;
-  --text:#17172f;
-  --muted:#68708a;
-  --line:#e5dcf5;
-  --purple:#6d35d8;
-  --purple-soft:#f1e8ff;
-  --blue:#2f80ed;
-  --blue-soft:#eaf4ff;
-  --green:#16a05d;
-  --green-soft:#eafaf1;
-  --gold:#f5a400;
-  --shadow:0 14px 35px rgba(54,35,93,.08)
+:root{
+--bg:#f7f4fb;
+--card:#fff;
+--text:#17172f;
+--muted:#68708a;
+--line:#e5dcf5;
+--purple:#6d35d8;
+--purple-soft:#f1e8ff;
+--blue:#2f80ed;
+--blue-soft:#eaf4ff;
+--green:#16a05d;
+--green-soft:#eafaf1;
+--gold:#f5a400;
+--shadow:0 14px 35px rgba(54,35,93,.08)
 }
-* {
-  box-sizing:border-box
+*{
+box-sizing:border-box}
+body{
+margin:0;
+font-family:Arial,sans-serif;
+background:linear-gradient(135deg,#fbf9ff,#f5f9ff);
+color:var(--text)}
+.app{
+display:grid;
+grid-template-columns:250px 1fr;
+min-height:100vh}
+.sidebar{
+background:rgba(255,255,255,.9);
+border-right:1px solid var(--line);
+padding:26px 20px;
+display:flex;
+flex-direction:column;
+gap:20px}
+.logo{
+display:flex;
+gap:12px;
+align-items:center;
+font-size:21px;
+font-weight:800;
+margin-bottom:12px}
+.logo-icon{
+width:48px;
+height:48px;
+border-radius:18px;
+background:linear-gradient(135deg,#7c3aed,#9d6cff);
+color:white;
+display:grid;
+place-items:center;
+font-size:26px}
+.nav{
+display:grid;
+gap:10px}
+.tab-btn{
+width:100%;
+border:none;
+background:transparent;
+padding:14px 16px;
+border-radius:14px;
+text-align:left;
+font-size:16px;
+cursor:pointer;
+color:var(--text)}
+.tab-btn.active{
+background:linear-gradient(135deg,#7c3aed,#6d28d9);
+color:white;
+font-weight:700;
+box-shadow:0 10px 22px rgba(109,40,217,.22)}
+.sidebar-bottom{
+margin-top:auto;
+display:grid;
+gap:14px}
+.side-card,.card,.tracker-card{
+background:white;
+border:1px solid var(--line);
+border-radius:24px;
+padding:22px;
+box-shadow:var(--shadow)}
+#syncStatus,#accountSyncStatus{
+color:var(--green);
+font-weight:800}
+.small-note{
+color:var(--muted);
+font-size:14px;
+line-height:1.5}
+.main{
+padding:30px}
+.panel{
+display:none}
+.panel.active{
+display:block}
+.topbar{
+display:flex;
+justify-content:space-between;
+align-items:center;
+gap:18px;
+margin-bottom:22px}
+.welcome h1{
+margin:0;
+font-size:32px}
+.welcome p{
+margin:8px 0 0;
+color:var(--muted)}
+.date-pill{
+background:white;
+border:1px solid var(--line);
+border-radius:16px;
+padding:14px 18px;
+box-shadow:var(--shadow);
+white-space:nowrap}
+.overall-card{
+margin-bottom:18px;
+display:grid;
+grid-template-columns:1fr auto;
+gap:18px;
+align-items:center}
+.overall-card h2{
+margin:0 0 8px}
+.overall-card p{
+margin:0;
+color:var(--muted)}
+.overall-percent{
+font-size:38px;
+font-weight:800;
+color:var(--purple)}
+.progress-track{
+height:12px;
+background:#ece8f5;
+border-radius:999px;
+overflow:hidden;
+margin-top:16px}
+.progress-fill{
+height:100%;
+border-radius:999px;
+width:0%;
+background:linear-gradient(90deg,#7c3aed,#9d6cff)}
+.dashboard-grid{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:18px}
+.tracker-card{
+border-radius:28px;
+padding:24px}
+.tracker-header{
+display:flex;
+justify-content:space-between;
+gap:14px;
+align-items:flex-start;
+margin-bottom:18px}
+.tracker-title{
+display:flex;
+gap:12px;
+align-items:center}
+.tracker-icon{
+width:48px;
+height:48px;
+border-radius:18px;
+display:grid;
+place-items:center;
+font-size:26px}
+.water-icon{
+background:var(--blue-soft)}
+.step-icon{
+background:var(--green-soft)}
+.tracker-title h2{
+margin:0;
+font-size:24px}
+.tracker-title p{
+margin:4px 0 0;
+color:var(--muted);
+font-size:14px}
+.tracker-percent{
+font-size:28px;
+font-weight:800}
+.water-color{
+color:var(--blue)}
+.step-color{
+color:var(--green)}
+.tracker-body{
+display:grid;
+grid-template-columns:180px 1fr;
+gap:18px;
+align-items:center}
+.progress-circle{
+width:170px;
+height:170px;
+border-radius:50%;
+display:grid;
+place-items:center;
+margin:0 auto}
+.progress-circle-inner{
+width:122px;
+height:122px;
+border-radius:50%;
+background:white;
+display:grid;
+place-items:center;
+text-align:center;
+box-shadow:var(--shadow)}
+.progress-circle-inner strong{
+font-size:36px;
+line-height:1}
+.progress-circle-inner span{
+color:var(--muted);
+font-size:14px;
+line-height:1.35}
+.next-card{
+border-radius:22px;
+padding:22px;
+min-height:160px;
+display:grid;
+align-content:center}
+.water-next{
+background:linear-gradient(135deg,#f3f9ff,#eaf4ff);
+border:1px solid #d5e8ff}
+.step-next{
+background:linear-gradient(135deg,#f4fff8,#eafaf1);
+border:1px solid #cfeedd}
+.next-label{
+font-weight:800;
+margin-bottom:8px}
+.next-main{
+display:block;
+font-size:32px;
+font-weight:800;
+color:var(--text);
+margin-bottom:8px}
+.next-message{
+color:var(--muted);
+line-height:1.45}
+.timeline{
+margin-top:22px}
+.timeline-title{
+display:flex;
+justify-content:space-between;
+align-items:center;
+gap:12px;
+margin-bottom:12px}
+.timeline-title strong{
+font-size:18px}
+.timeline-row{
+display:flex;
+gap:10px;
+overflow-x:auto;
+padding:4px 2px 10px}
+.checkpoint{
+min-width:78px;
+border:1px solid var(--line);
+background:#fbfdff;
+border-radius:18px;
+padding:12px 10px;
+text-align:center;
+cursor:pointer;
+transition:transform .15s ease,border-color .15s ease,background .15s ease}
+.checkpoint:hover{
+transform:translateY(-1px)}
+.checkpoint.done{
+color:white}
+.checkpoint.water.done{
+background:var(--blue);
+border-color:var(--blue)}
+.checkpoint.step.done{
+background:var(--green);
+border-color:var(--green)}
+.checkpoint.next{
+border-width:2px}
+.checkpoint.water.next{
+background:#f3f9ff;
+border-color:var(--blue)}
+.checkpoint.step.next{
+background:#f4fff8;
+border-color:var(--green)}
+.check-symbol{
+width:28px;
+height:28px;
+border-radius:50%;
+display:grid;
+place-items:center;
+margin:0 auto 8px;
+border:2px solid #aeb8cc;
+background:white;
+color:var(--muted);
+font-weight:800}
+.checkpoint.done .check-symbol{
+border-color:white;
+background:rgba(255,255,255,.25);
+color:white}
+.checkpoint.water.next .check-symbol{
+border-color:var(--blue);
+color:var(--blue)}
+.checkpoint.step.next .check-symbol{
+border-color:var(--green);
+color:var(--green)}
+.check-time{
+font-weight:800;
+font-size:13px;
+white-space:nowrap}
+.check-goal{
+font-size:12px;
+margin-top:4px;
+color:var(--muted);
+white-space:nowrap}
+.checkpoint.done .check-goal{
+color:rgba(255,255,255,.85)}
+.tip-card{
+margin-top:16px;
+border-radius:18px;
+padding:16px;
+display:grid;
+grid-template-columns:44px 1fr;
+gap:12px;
+align-items:center}
+.water-tip{
+background:var(--blue-soft)}
+.step-tip{
+background:var(--green-soft)}
+.tip-icon{
+width:44px;
+height:44px;
+border-radius:50%;
+background:white;
+display:grid;
+place-items:center;
+font-size:24px}
+.tip-card strong{
+display:block;
+margin-bottom:4px}
+.tip-card p{
+margin:0;
+color:var(--muted);
+line-height:1.4;
+font-size:14px}
+.settings-grid{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:18px}
+.settings-section h2,.account-section h2,.history-section h2{
+margin-top:0}
+label{
+display:block;
+margin:12px 0;
+color:var(--muted);
+font-weight:700}
+input{
+width:100%;
+padding:11px;
+border:1px solid var(--line);
+border-radius:12px;
+font-size:15px;
+margin-top:6px}
+button{
+border:none;
+border-radius:14px;
+padding:12px 16px;
+font-size:15px;
+cursor:pointer;
+margin:6px 4px 6px 0}
+.primary-btn{
+background:var(--purple);
+color:white}
+.water-btn{
+background:var(--blue);
+color:white}
+.step-btn{
+background:var(--green);
+color:white}
+.soft-btn{
+background:var(--purple-soft);
+color:var(--purple)}
+.reset-btn{
+background:#f0edf7;
+color:var(--muted)}
+.message{
+background:#faf7ff;
+border-radius:16px;
+padding:14px;
+color:var(--muted);
+line-height:1.5}
+.week-placeholder{
+display:grid;
+grid-template-columns:repeat(7,1fr);
+gap:10px}
+.day-box{
+background:#faf7ff;
+border:1px solid var(--line);
+border-radius:16px;
+padding:14px 8px;
+text-align:center;
+color:var(--muted)}
+.day-box strong{
+display:block;
+color:var(--text);
+margin-bottom:8px}
+#signedInBox{
+display:none}
+.hidden-table{
+display:none}
+@media(max-width:1050px){
+.dashboard-grid,.settings-grid{
+grid-template-columns:1fr}
 }
-body {
-  margin:0;
-  font-family:Arial,sans-serif;
-  background:linear-gradient(135deg,#fbf9ff,#f5f9ff);
-  color:var(--text)
+@media(max-width:860px){
+.app{
+grid-template-columns:1fr}
+.sidebar{
+border-right:none;
+border-bottom:1px solid var(--line)}
+.nav{
+display:flex;
+overflow-x:auto}
+.tab-btn{
+min-width:130px;
+text-align:center}
+.sidebar-bottom{
+display:none}
+.main{
+padding:20px}
+.topbar,.overall-card{
+display:grid;
+grid-template-columns:1fr;
+align-items:start}
+.tracker-body{
+grid-template-columns:1fr}
+.progress-circle{
+width:165px;
+height:165px}
+.progress-circle-inner{
+width:118px;
+height:118px}
+.next-main{
+font-size:30px}
+.week-placeholder{
+grid-template-columns:repeat(2,1fr)}
 }
-.app {
-  display:grid;
-  grid-template-columns:250px 1fr;
-  min-height:100vh
-}
-.sidebar {
-  background:rgba(255,255,255,.9);
-  border-right:1px solid var(--line);
-  padding:26px 20px;
-  display:flex;
-  flex-direction:column;
-  gap:20px
-}
-.logo {
-  display:flex;
-  gap:12px;
-  align-items:center;
-  font-size:21px;
-  font-weight:800;
-  margin-bottom:12px
-}
-.logo-icon {
-  width:48px;
-  height:48px;
-  border-radius:18px;
-  background:linear-gradient(135deg,#7c3aed,#9d6cff);
-  color:white;
-  display:grid;
-  place-items:center;
-  font-size:26px
-}
-.nav {
-  display:grid;
-  gap:10px
-}
-.tab-btn {
-  width:100%;
-  border:none;
-  background:transparent;
-  padding:14px 16px;
-  border-radius:14px;
-  text-align:left;
-  font-size:16px;
-  cursor:pointer;
-  color:var(--text)
-}
-.tab-btn.active {
-  background:linear-gradient(135deg,#7c3aed,#6d28d9);
-  color:white;
-  font-weight:700;
-  box-shadow:0 10px 22px rgba(109,40,217,.22)
-}
-.sidebar-bottom {
-  margin-top:auto;
-  display:grid;
-  gap:14px
-}
-.side-card,.card,.tracker-card {
-  background:white;
-  border:1px solid var(--line);
-  border-radius:24px;
-  padding:22px;
-  box-shadow:var(--shadow)
-}
-#syncStatus,#accountSyncStatus {
-  color:var(--green);
-  font-weight:800
-}
-.small-note {
-  color:var(--muted);
-  font-size:14px;
-  line-height:1.5
-}
-.main {
-  padding:30px
-}
-.panel {
-  display:none
-}
-.panel.active {
-  display:block
-}
-.topbar {
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  gap:18px;
-  margin-bottom:22px
-}
-.welcome h1 {
-  margin:0;
-  font-size:32px
-}
-.welcome p {
-  margin:8px 0 0;
-  color:var(--muted)
-}
-.date-pill {
-  background:white;
-  border:1px solid var(--line);
-  border-radius:16px;
-  padding:14px 18px;
-  box-shadow:var(--shadow);
-  white-space:nowrap
-}
-.overall-card {
-  margin-bottom:18px;
-  display:grid;
-  grid-template-columns:1fr auto;
-  gap:18px;
-  align-items:center
-}
-.overall-card h2 {
-  margin:0 0 8px
-}
-.overall-card p {
-  margin:0;
-  color:var(--muted)
-}
-.overall-percent {
-  font-size:38px;
-  font-weight:800;
-  color:var(--purple)
-}
-.progress-track {
-  height:12px;
-  background:#ece8f5;
-  border-radius:999px;
-  overflow:hidden;
-  margin-top:16px
-}
-.progress-fill {
-  height:100%;
-  border-radius:999px;
-  width:0%;
-  background:linear-gradient(90deg,#7c3aed,#9d6cff)
-}
-.dashboard-grid {
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:18px
-}
+/* V1.3.0.1 TIMELINE SCROLL FIX */
 .tracker-card {
-  border-radius:28px;
-  padding:24px
-}
-.tracker-header {
-  display:flex;
-  justify-content:space-between;
-  gap:14px;
-  align-items:flex-start;
-  margin-bottom:18px
-}
-.tracker-title {
-  display:flex;
-  gap:12px;
-  align-items:center
-}
-.tracker-icon {
-  width:48px;
-  height:48px;
-  border-radius:18px;
-  display:grid;
-  place-items:center;
-  font-size:26px
-}
-.water-icon {
-  background:var(--blue-soft)
-}
-.step-icon {
-  background:var(--green-soft)
-}
-.tracker-title h2 {
-  margin:0;
-  font-size:24px
-}
-.tracker-title p {
-  margin:4px 0 0;
-  color:var(--muted);
-  font-size:14px
-}
-.tracker-percent {
-  font-size:28px;
-  font-weight:800
-}
-.water-color {
-  color:var(--blue)
-}
-.step-color {
-  color:var(--green)
-}
-.tracker-body {
-  display:grid;
-  grid-template-columns:180px 1fr;
-  gap:18px;
-  align-items:center
-}
-.progress-circle {
-  width:170px;
-  height:170px;
-  border-radius:50%;
-  display:grid;
-  place-items:center;
-  margin:0 auto
-}
-.progress-circle-inner {
-  width:122px;
-  height:122px;
-  border-radius:50%;
-  background:white;
-  display:grid;
-  place-items:center;
-  text-align:center;
-  box-shadow:var(--shadow)
-}
-.progress-circle-inner strong {
-  font-size:36px;
-  line-height:1
-}
-.progress-circle-inner span {
-  color:var(--muted);
-  font-size:14px;
-  line-height:1.35
-}
-.next-card {
-  border-radius:22px;
-  padding:22px;
-  min-height:160px;
-  display:grid;
-  align-content:center
-}
-.water-next {
-  background:linear-gradient(135deg,#f3f9ff,#eaf4ff);
-  border:1px solid #d5e8ff
-}
-.step-next {
-  background:linear-gradient(135deg,#f4fff8,#eafaf1);
-  border:1px solid #cfeedd
-}
-.next-label {
-  font-weight:800;
-  margin-bottom:8px
-}
-.next-main {
-  display:block;
-  font-size:32px;
-  font-weight:800;
-  color:var(--text);
-  margin-bottom:8px
-}
-.next-message {
-  color:var(--muted);
-  line-height:1.45
+min-width: 0;
+overflow: hidden;
 }
 .timeline {
-  margin-top:22px
-}
-.timeline-title {
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  gap:12px;
-  margin-bottom:12px
-}
-.timeline-title strong {
-  font-size:18px
+min-width: 0;
+max-width: 100%;
+overflow: hidden;
 }
 .timeline-row {
-  display:flex;
-  gap:10px;
-  overflow-x:auto;
-  padding:4px 2px 10px
+display: flex;
+gap: 10px;
+overflow-x: auto;
+overflow-y: hidden;
+max-width: 100%;
+padding: 4px 2px 12px;
+scroll-snap-type: x proximity;
+-webkit-overflow-scrolling: touch;
 }
 .checkpoint {
-  min-width:78px;
-  border:1px solid var(--line);
-  background:#fbfdff;
-  border-radius:18px;
-  padding:12px 10px;
-  text-align:center;
-  cursor:pointer;
-  transition:transform .15s ease,border-color .15s ease,background .15s ease
+flex: 0 0 auto;
+min-width: 78px;
+scroll-snap-align: start;
 }
-.checkpoint:hover {
-  transform:translateY(-1px)
+.dashboard-grid {
+min-width: 0;
 }
-.checkpoint.done {
-  color:white
-}
-.checkpoint.water.done {
-  background:var(--blue);
-  border-color:var(--blue)
-}
-.checkpoint.step.done {
-  background:var(--green);
-  border-color:var(--green)
-}
-.checkpoint.next {
-  border-width:2px
-}
-.checkpoint.water.next {
-  background:#f3f9ff;
-  border-color:var(--blue)
-}
-.checkpoint.step.next {
-  background:#f4fff8;
-  border-color:var(--green)
-}
-.check-symbol {
-  width:28px;
-  height:28px;
-  border-radius:50%;
-  display:grid;
-  place-items:center;
-  margin:0 auto 8px;
-  border:2px solid #aeb8cc;
-  background:white;
-  color:var(--muted);
-  font-weight:800
-}
-.checkpoint.done .check-symbol {
-  border-color:white;
-  background:rgba(255,255,255,.25);
-  color:white
-}
-.checkpoint.water.next .check-symbol {
-  border-color:var(--blue);
-  color:var(--blue)
-}
-.checkpoint.step.next .check-symbol {
-  border-color:var(--green);
-  color:var(--green)
-}
-.check-time {
-  font-weight:800;
-  font-size:13px;
-  white-space:nowrap
-}
-.check-goal {
-  font-size:12px;
-  margin-top:4px;
-  color:var(--muted);
-  white-space:nowrap
-}
-.checkpoint.done .check-goal {
-  color:rgba(255,255,255,.85)
-}
-.tip-card {
-  margin-top:16px;
-  border-radius:18px;
-  padding:16px;
-  display:grid;
-  grid-template-columns:44px 1fr;
-  gap:12px;
-  align-items:center
-}
-.water-tip {
-  background:var(--blue-soft)
-}
-.step-tip {
-  background:var(--green-soft)
-}
-.tip-icon {
-  width:44px;
-  height:44px;
-  border-radius:50%;
-  background:white;
-  display:grid;
-  place-items:center;
-  font-size:24px
-}
-.tip-card strong {
-  display:block;
-  margin-bottom:4px
-}
-.tip-card p {
-  margin:0;
-  color:var(--muted);
-  line-height:1.4;
-  font-size:14px
-}
-.settings-grid {
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:18px
-}
-.settings-section h2,.account-section h2,.history-section h2 {
-  margin-top:0
-}
-label {
-  display:block;
-  margin:12px 0;
-  color:var(--muted);
-  font-weight:700
-}
-input {
-  width:100%;
-  padding:11px;
-  border:1px solid var(--line);
-  border-radius:12px;
-  font-size:15px;
-  margin-top:6px
-}
-button {
-  border:none;
-  border-radius:14px;
-  padding:12px 16px;
-  font-size:15px;
-  cursor:pointer;
-  margin:6px 4px 6px 0
-}
-.primary-btn {
-  background:var(--purple);
-  color:white
-}
-.water-btn {
-  background:var(--blue);
-  color:white
-}
-.step-btn {
-  background:var(--green);
-  color:white
-}
-.soft-btn {
-  background:var(--purple-soft);
-  color:var(--purple)
-}
-.reset-btn {
-  background:#f0edf7;
-  color:var(--muted)
-}
-.message {
-  background:#faf7ff;
-  border-radius:16px;
-  padding:14px;
-  color:var(--muted);
-  line-height:1.5
-}
-.week-placeholder {
-  display:grid;
-  grid-template-columns:repeat(7,1fr);
-  gap:10px
-}
-.day-box {
-  background:#faf7ff;
-  border:1px solid var(--line);
-  border-radius:16px;
-  padding:14px 8px;
-  text-align:center;
-  color:var(--muted)
-}
-.day-box strong {
-  display:block;
-  color:var(--text);
-  margin-bottom:8px
-}
-#signedInBox {
-  display:none
-}
-.hidden-table {
-  display:none
-}
-@media(max-width:1050px) {
-  .dashboard-grid,.settings-grid {
-    grid-template-columns:1fr
-  }
-
-}
-@media(max-width:860px) {
-  .app {
-    grid-template-columns:1fr
-  }
-.sidebar {
-    border-right:none;
-    border-bottom:1px solid var(--line)
-  }
-.nav {
-    display:flex;
-    overflow-x:auto
-  }
-.tab-btn {
-    min-width:130px;
-    text-align:center
-  }
-.sidebar-bottom {
-    display:none
-  }
 .main {
-    padding:20px
-  }
-.topbar,.overall-card {
-    display:grid;
-    grid-template-columns:1fr;
-    align-items:start
-  }
-.tracker-body {
-    grid-template-columns:1fr
-  }
-.progress-circle {
-    width:165px;
-    height:165px
-  }
-.progress-circle-inner {
-    width:118px;
-    height:118px
-  }
-.next-main {
-    font-size:30px
-  }
-.week-placeholder {
-    grid-template-columns:repeat(2,1fr)
-  }
-
+min-width: 0;
+overflow-x: hidden;
 }
-/* V1.3.0.1 TIMELINE SCROLL FIX */ .tracker-card  {
-  min-width: 0;
-  overflow: hidden;
-
+body {
+overflow-x: hidden;
 }
-.timeline  {
-  min-width: 0;
-  max-width: 100%;
-  overflow: hidden;
-
+/* V1.3.0.2 PASSWORD RECOVERY */
+.recovery-divider{
+height:1px;
+background:var(--line);
+margin:18px 0;
 }
-.timeline-row  {
-  display: flex;
-  gap: 10px;
-  overflow-x: auto;
-  overflow-y: hidden;
-  max-width: 100%;
-  padding: 4px 2px 12px;
-  scroll-snap-type: x proximity;
-  -webkit-overflow-scrolling: touch;
-
+.recovery-box{
+background:#faf7ff;
+border:1px solid var(--line);
+border-radius:18px;
+padding:16px;
+margin-top:14px;
 }
-.checkpoint  {
-  flex: 0 0 auto;
-  min-width: 78px;
-  scroll-snap-align: start;
-
+.recovery-box h3{
+margin:0 0 8px;
 }
-.dashboard-grid  {
-  min-width: 0;
-
+.recovery-box p{
+margin:0 0 12px;
 }
-.main  {
-  min-width: 0;
-  overflow-x: hidden;
-
+#passwordRecoveryBox{
+display:none;
 }
-body  {
-  overflow-x: hidden;
-
+.link-btn{
+background:transparent;
+color:var(--purple);
+padding-left:0;
+padding-right:0;
+text-decoration:underline;
 }
-/* V1.3.0.2 PASSWORD RECOVERY */ .recovery-divider {
-  height:1px;
-  background:var(--line);
-  margin:18px 0;
-
+/* V1.3.0.3 ACCOUNT BUTTON FEEDBACK */
+.account-section button,
+.recovery-box button,
+#signedOutBox button,
+#signedInBox button {
+transition: transform 0.12s ease, box-shadow 0.12s ease, filter 0.12s ease, opacity 0.12s ease;
 }
-.recovery-box {
-  background:#faf7ff;
-  border:1px solid var(--line);
-  border-radius:18px;
-  padding:16px;
-  margin-top:14px;
-
+.account-section button:hover,
+.recovery-box button:hover,
+#signedOutBox button:hover,
+#signedInBox button:hover {
+transform: translateY(-1px);
+box-shadow: 0 8px 18px rgba(54, 35, 93, 0.12);
+filter: brightness(0.98);
 }
-.recovery-box h3 {
-  margin:0 0 8px;
-
+.account-section button:active,
+.recovery-box button:active,
+#signedOutBox button:active,
+#signedInBox button:active {
+transform: translateY(1px) scale(0.98);
+box-shadow: none;
+opacity: 0.85;
 }
-.recovery-box p {
-  margin:0 0 12px;
-
-}
-#passwordRecoveryBox {
-  display:none;
-
-}
-.link-btn {
-  background:transparent;
-  color:var(--purple);
-  padding-left:0;
-  padding-right:0;
-  text-decoration:underline;
-
-}
-/* V1.3.0.3 ACCOUNT BUTTON FEEDBACK */ .account-section button, .recovery-box button, #signedOutBox button, #signedInBox button  {
-  transition: transform 0.12s ease, box-shadow 0.12s ease, filter 0.12s ease, opacity 0.12s ease;
-
-}
-.account-section button:hover, .recovery-box button:hover, #signedOutBox button:hover, #signedInBox button:hover  {
-  transform: translateY(-1px);
-  box-shadow: 0 8px 18px rgba(54, 35, 93, 0.12);
-  filter: brightness(0.98);
-
-}
-.account-section button:active, .recovery-box button:active, #signedOutBox button:active, #signedInBox button:active  {
-  transform: translateY(1px) scale(0.98);
-  box-shadow: none;
-  opacity: 0.85;
-
-}
-.account-section button:disabled, .recovery-box button:disabled  {
-  opacity: 0.65;
-  cursor: not-allowed;
-  transform: none;
-
+.account-section button:disabled,
+.recovery-box button:disabled {
+opacity: 0.65;
+cursor: not-allowed;
+transform: none;
 }
 </style>
  </head>
@@ -1136,203 +1027,195 @@ body  {
   <script>
 const SUPABASE_URL="https://eqnqzfghzzlnhnvejbiv.supabase.co";
 const SUPABASE_KEY="sb_publishable_qY64imdONDWDJykNFY-CCw_JaWoFpp5";
-const supabaseClient=supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const supabaseClient=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 let currentUser=null;
 /*
 v1.3.0.2 password recovery:
 When the user opens the Supabase password reset link, Supabase fires
 PASSWORD_RECOVERY. We then show the new password form on the Account page.
 */
-supabaseClient.auth.onAuthStateChange(function (event, session) {
-  if (event==="PASSWORD_RECOVERY") {
-    if (passwordRecoveryBox) {
-      passwordRecoveryBox.style.display="block";
-    }
-    openPanel("accountPanel");
-    authMessage.textContent="Password recovery mode. Enter a new password below.";
-  }
+supabaseClient.auth.onAuthStateChange(function(event,session){
+if(event==="PASSWORD_RECOVERY"){
+if(passwordRecoveryBox){
+passwordRecoveryBox.style.display="block";
+}
+openPanel("accountPanel");
+authMessage.textContent="Password recovery mode. Enter a new password below.";
+}
 }
 );
-const emailInput=document.getElementById("emailInput"), passwordInput=document.getElementById("passwordInput"), newPasswordInput=document.getElementById("newPasswordInput"), passwordRecoveryBox=document.getElementById("passwordRecoveryBox"), resetEmailInput=document.getElementById("resetEmailInput"), authMessage=document.getElementById("authMessage"), syncStatus=document.getElementById("syncStatus"), lastSynced=document.getElementById("lastSynced"), accountSyncStatus=document.getElementById("accountSyncStatus"), accountLastSynced=document.getElementById("accountLastSynced"), signedOutBox=document.getElementById("signedOutBox"), signedInBox=document.getElementById("signedInBox"), userEmail=document.getElementById("userEmail");
-function getTodayKey() {
-  const d=new Date();
-  return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2, "0")+"-"+String(d.getDate()).padStart(2, "0")
-}
+const emailInput=document.getElementById("emailInput"),passwordInput=document.getElementById("passwordInput"),newPasswordInput=document.getElementById("newPasswordInput"),passwordRecoveryBox=document.getElementById("passwordRecoveryBox"),resetEmailInput=document.getElementById("resetEmailInput"),authMessage=document.getElementById("authMessage"),syncStatus=document.getElementById("syncStatus"),lastSynced=document.getElementById("lastSynced"),accountSyncStatus=document.getElementById("accountSyncStatus"),accountLastSynced=document.getElementById("accountLastSynced"),signedOutBox=document.getElementById("signedOutBox"),signedInBox=document.getElementById("signedInBox"),userEmail=document.getElementById("userEmail");
+function getTodayKey(){
+const d=new Date();
+return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
 const todayKey=getTodayKey();
-function dailyKey(name) {
-  return name+"-"+todayKey
-}
-document.getElementById("datePill").textContent=new Date().toLocaleDateString(undefined, {
-  weekday:"long", month:"long", day:"numeric", year:"numeric"
-}
+function dailyKey(name){
+return name+"-"+todayKey}
+document.getElementById("datePill").textContent=new Date().toLocaleDateString(undefined,{
+weekday:"long",month:"long",day:"numeric",year:"numeric"}
 );
-function formatHour(hour) {
-  const suffix=hour>=12?"PM":"AM";
-  let displayHour=hour%12;
-  if (displayHour===0)displayHour=12;
-  return displayHour+":00 "+suffix
+function formatHour(hour){
+const suffix=hour>=12?"PM":"AM";
+let displayHour=hour%12;
+if(displayHour===0)displayHour=12;
+return displayHour+":00 "+suffix}
+function updateAuthDisplay(){
+if(currentUser){
+signedOutBox.style.display="none";
+signedInBox.style.display="block";
+userEmail.textContent=currentUser.email}
+else{
+signedOutBox.style.display="block";
+signedInBox.style.display="none"}
 }
-function updateAuthDisplay() {
-  if (currentUser) {
-    signedOutBox.style.display="none";
-    signedInBox.style.display="block";
-    userEmail.textContent=currentUser.email
-  }
-  else {
-    signedOutBox.style.display="block";
-    signedInBox.style.display="none"
-  }
-}
-document.getElementById("signUpBtn").addEventListener("click", async function () {
-  const signUpButton=document.getElementById("signUpBtn");
-  const originalText=signUpButton.textContent;
-  signUpButton.textContent="Creating...";
-  signUpButton.disabled=true;
-  const {
-    error
-  }
-  =await supabaseClient.auth.signUp( {
-    email:emailInput.value, password:passwordInput.value
-  }
-  );
-  signUpButton.textContent=originalText;
-  signUpButton.disabled=false;
-  if (error) {
-    authMessage.textContent=error.message;
-    return
-  }
-  authMessage.textContent="Account created. Check your email if confirmation is required."
-}
+document.getElementById("signUpBtn").addEventListener("click",async function(){
+const signUpButton=document.getElementById("signUpBtn");
+const originalText=signUpButton.textContent;
+signUpButton.textContent="Creating...";
+signUpButton.disabled=true;
+const{
+error}
+=await supabaseClient.auth.signUp({
+email:emailInput.value,password:passwordInput.value}
 );
-document.getElementById("signInBtn").addEventListener("click", async function () {
-  const signInButton=document.getElementById("signInBtn");
-  const originalText=signInButton.textContent;
-  signInButton.textContent="Signing in...";
-  signInButton.disabled=true;
-  const {
-    data, error
-  }
-  =await supabaseClient.auth.signInWithPassword( {
-    email:emailInput.value, password:passwordInput.value
-  }
-  );
-  signInButton.textContent=originalText;
-  signInButton.disabled=false;
-  if (error) {
-    authMessage.textContent=error.message;
-    return
-  }
-  currentUser=data.user;
-  authMessage.textContent="Signed in.";
-  updateAuthDisplay();
-  await loadCloudData()
-}
+signUpButton.textContent=originalText;
+signUpButton.disabled=false;
+if(error){
+authMessage.textContent=error.message;
+return}
+authMessage.textContent="Account created. Check your email if confirmation is required."}
 );
-document.getElementById("forgotPasswordBtn").addEventListener("click", function () {
-  authMessage.textContent="Enter your email in the Password Help box, then click Send Password Reset Email.";
-  if (resetEmailInput) {
-    resetEmailInput.focus();
-  }
+document.getElementById("signInBtn").addEventListener("click",async function(){
+const signInButton=document.getElementById("signInBtn");
+const originalText=signInButton.textContent;
+signInButton.textContent="Signing in...";
+signInButton.disabled=true;
+const{
+data,error}
+=await supabaseClient.auth.signInWithPassword({
+email:emailInput.value,password:passwordInput.value}
+);
+signInButton.textContent=originalText;
+signInButton.disabled=false;
+if(error){
+authMessage.textContent=error.message;
+return}
+currentUser=data.user;
+authMessage.textContent="Signed in.";
+updateAuthDisplay();
+await loadCloudData()}
+);
+document.getElementById("forgotPasswordBtn").addEventListener("click",function(){
+authMessage.textContent="Enter your email in the Password Help box, then click Send Password Reset Email.";
+if(resetEmailInput){
+resetEmailInput.focus();
+}
 }
 );
 document.getElementById("sendResetEmailBtn").addEventListener("click", async function () {
-  const resetButton=document.getElementById("sendResetEmailBtn");
-  const email=resetEmailInput.value.trim();
+  const resetButton = document.getElementById("sendResetEmailBtn");
+  const email = resetEmailInput.value.trim();
+
   if (!email) {
-    authMessage.textContent="Enter the email for the account you want to reset.";
+    authMessage.textContent = "Enter the email for the account you want to reset.";
     resetEmailInput.focus();
-    return
+    return;
   }
-  const originalText=resetButton.textContent;
-  resetButton.textContent="Sending...";
-  resetButton.disabled=true;
- const redirectUrl=window.location.origin + window.location.pathname.replace(/\/?$/, "/");
-  const {
-    error
-  }
-  =await supabaseClient.auth.resetPasswordForEmail(email, {
-    redirectTo:redirectUrl
-  }
-  );
-  resetButton.textContent=originalText;
-  resetButton.disabled=false;
+
+  const originalText = resetButton.textContent;
+
+  resetButton.textContent = "Sending...";
+  resetButton.disabled = true;
+
+  const redirectUrl = window.location.href.split("#")[0].split("?")[0];
+
+  const { error } =
+    await supabaseClient.auth.resetPasswordForEmail(email, {
+      redirectTo: redirectUrl
+    });
+
+  resetButton.textContent = originalText;
+  resetButton.disabled = false;
+
   if (error) {
-    authMessage.textContent=error.message;
-    return
+    const errorMessage = error.message.toLowerCase();
+
+    if (errorMessage.includes("rate limit")) {
+      authMessage.textContent =
+        "Too many password reset requests. Please wait 15–60 minutes before requesting another email.";
+      return;
+    }
+
+    authMessage.textContent =
+      "Unable to send password reset email right now. Please try again later.";
+
+    console.error("Password reset error:", error);
+    return;
   }
-  authMessage.textContent="Password reset email sent. Check your inbox. If the link opens a 404 page, add this app URL to Supabase Redirect URLs: "+redirectUrl;
+
+  authMessage.textContent =
+    "Password reset email sent. Check your inbox and spam folder. The email may take a few minutes to arrive.";
+});
+document.getElementById("saveNewPasswordBtn").addEventListener("click",async function(){
+const newPassword=newPasswordInput.value;
+if(!newPassword||newPassword.length<6){
+authMessage.textContent="Enter a new password with at least 6 characters.";
+return}
+const{
+error}
+=await supabaseClient.auth.updateUser({
+password:newPassword}
+);
+if(error){
+authMessage.textContent=error.message;
+return}
+authMessage.textContent="Password updated. You can now sign in with your new password.";
+newPasswordInput.value="";
+if(passwordRecoveryBox){
+passwordRecoveryBox.style.display="none";
+}
 }
 );
-document.getElementById("saveNewPasswordBtn").addEventListener("click", async function () {
-  const newPassword=newPasswordInput.value;
-  if (!newPassword||newPassword.length<6) {
-    authMessage.textContent="Enter a new password with at least 6 characters.";
-    return
-  }
-  const {
-    error
-  }
-  =await supabaseClient.auth.updateUser( {
-    password:newPassword
-  }
-  );
-  if (error) {
-    authMessage.textContent=error.message;
-    return
-  }
-  authMessage.textContent="Password updated. You can now sign in with your new password.";
-  newPasswordInput.value="";
-  if (passwordRecoveryBox) {
-    passwordRecoveryBox.style.display="none";
-  }
-}
+document.getElementById("signOutBtn").addEventListener("click",async function(){
+await supabaseClient.auth.signOut();
+currentUser=null;
+authMessage.textContent="Signed out.";
+setSyncText("☁ Not synced","Last synced: not yet");
+updateAuthDisplay()}
 );
-document.getElementById("signOutBtn").addEventListener("click", async function () {
-  await supabaseClient.auth.signOut();
-  currentUser=null;
-  authMessage.textContent="Signed out.";
-  setSyncText("☁ Not synced", "Last synced: not yet");
-  updateAuthDisplay()
-}
+document.querySelectorAll(".tab-btn").forEach(function(button){
+button.addEventListener("click",function(){
+document.querySelectorAll(".tab-btn").forEach(btn=>btn.classList.remove("active"));
+document.querySelectorAll(".panel").forEach(panel=>panel.classList.remove("active"));
+button.classList.add("active");
+document.getElementById(button.dataset.panel).classList.add("active")}
+)}
 );
-document.querySelectorAll(".tab-btn").forEach(function (button) {
-  button.addEventListener("click", function () {
-    document.querySelectorAll(".tab-btn").forEach(btn=>btn.classList.remove("active"));
-    document.querySelectorAll(".panel").forEach(panel=>panel.classList.remove("active"));
-    button.classList.add("active");
-    document.getElementById(button.dataset.panel).classList.add("active")
-  }
-  )
-}
-);
-const waterGoalInput=document.getElementById("waterGoalInput"), waterStartInput=document.getElementById("waterStartInput"), waterEndInput=document.getElementById("waterEndInput"), makeWaterPlanBtn=document.getElementById("makeWaterPlan"), resetWaterBtn=document.getElementById("resetWater"), waterTableBody=document.querySelector("#waterTable tbody"), waterMessage=document.getElementById("waterMessage");
+const waterGoalInput=document.getElementById("waterGoalInput"),waterStartInput=document.getElementById("waterStartInput"),waterEndInput=document.getElementById("waterEndInput"),makeWaterPlanBtn=document.getElementById("makeWaterPlan"),resetWaterBtn=document.getElementById("resetWater"),waterTableBody=document.querySelector("#waterTable tbody"),waterMessage=document.getElementById("waterMessage");
 let savedWaterChecks=JSON.parse(localStorage.getItem(dailyKey("savedWaterChecks")))||[];
 waterGoalInput.value=localStorage.getItem("waterGoal")||waterGoalInput.value;
 waterStartInput.value=localStorage.getItem("waterStart")||waterStartInput.value;
 waterEndInput.value=localStorage.getItem("waterEnd")||waterEndInput.value;
-function saveWaterSettings() {
-  localStorage.setItem("waterGoal", waterGoalInput.value);
-  localStorage.setItem("waterStart", waterStartInput.value);
-  localStorage.setItem("waterEnd", waterEndInput.value)
-}
-function saveWaterChecks() {
-  const checks=document.querySelectorAll(".water-check");
-  localStorage.setItem(dailyKey("savedWaterChecks"), JSON.stringify(Array.from(checks).map(check=>check.checked)))
-}
-function makeWaterPlan() {
-  const waterGoal=Number(waterGoalInput.value), startHour=Number(waterStartInput.value), endHour=Number(waterEndInput.value);
-  waterTableBody.innerHTML="";
-  if (!waterGoal||endHour<=startHour) {
-    waterMessage.textContent="Check your water goal and times, then try again.";
-    return
-  }
-  saveWaterSettings();
-  const totalHours=endHour-startHour;
-  for (let glassNumber=1;
-  glassNumber<=waterGoal;
-  glassNumber++) {
-    const targetHour=startHour+Math.ceil((totalHours/waterGoal)*glassNumber), isChecked=savedWaterChecks[glassNumber-1]===true?"checked":"", row=document.createElement("tr");
-    row.innerHTML=`<td>${
+function saveWaterSettings(){
+localStorage.setItem("waterGoal",waterGoalInput.value);
+localStorage.setItem("waterStart",waterStartInput.value);
+localStorage.setItem("waterEnd",waterEndInput.value)}
+function saveWaterChecks(){
+const checks=document.querySelectorAll(".water-check");
+localStorage.setItem(dailyKey("savedWaterChecks"),JSON.stringify(Array.from(checks).map(check=>check.checked)))}
+function makeWaterPlan(){
+const waterGoal=Number(waterGoalInput.value),startHour=Number(waterStartInput.value),endHour=Number(waterEndInput.value);
+waterTableBody.innerHTML="";
+if(!waterGoal||endHour<=startHour){
+waterMessage.textContent="Check your water goal and times, then try again.";
+return}
+saveWaterSettings();
+const totalHours=endHour-startHour;
+for(let glassNumber=1;
+glassNumber<=waterGoal;
+glassNumber++){
+const targetHour=startHour+Math.ceil((totalHours/waterGoal)*glassNumber),isChecked=savedWaterChecks[glassNumber-1]===true?"checked":"",row=document.createElement("tr");
+row.innerHTML=`<td>${
 formatHour(targetHour)}
 </td><td>${
 glassNumber}
@@ -1341,25 +1224,22 @@ glassNumber===1?"":"es"}
 </td><td><input type="checkbox" class="water-check" ${
 isChecked}
 ></td>`;
-    waterTableBody.appendChild(row)
-  }
-  updateAllUI()
-}
-function renderWaterTimeline() {
-  const box=document.getElementById("waterTimeline"), rows=Array.from(document.querySelectorAll("#waterTable tbody tr")), nextIndex=rows.findIndex(row=> {
-    const checkbox=row.querySelector(".water-check");
-    return checkbox&&!checkbox.checked
-  }
-  );
-  box.innerHTML="";
-  rows.forEach(function (row, index) {
-    const checkbox=row.querySelector(".water-check"), isDone=checkbox.checked, isNext=index===nextIndex, timeText=row.children[0].textContent.replace(":00 ", " "), goalText=row.children[1].textContent.replace(" glasses", "").replace(" glass", "");
-    const item=document.createElement("button");
-    item.className="checkpoint water";
-    if (isDone)item.classList.add("done");
-    if (isNext)item.classList.add("next");
-    const symbol=isDone?"✓":index===rows.length-1?"🏆":"";
-    item.innerHTML=`<div class="check-symbol">${
+waterTableBody.appendChild(row)}
+updateAllUI()}
+function renderWaterTimeline(){
+const box=document.getElementById("waterTimeline"),rows=Array.from(document.querySelectorAll("#waterTable tbody tr")),nextIndex=rows.findIndex(row=>{
+const checkbox=row.querySelector(".water-check");
+return checkbox&&!checkbox.checked}
+);
+box.innerHTML="";
+rows.forEach(function(row,index){
+const checkbox=row.querySelector(".water-check"),isDone=checkbox.checked,isNext=index===nextIndex,timeText=row.children[0].textContent.replace(":00 "," "),goalText=row.children[1].textContent.replace(" glasses","").replace(" glass","");
+const item=document.createElement("button");
+item.className="checkpoint water";
+if(isDone)item.classList.add("done");
+if(isNext)item.classList.add("next");
+const symbol=isDone?"✓":index===rows.length-1?"🏆":"";
+item.innerHTML=`<div class="check-symbol">${
 symbol}
 </div><div class="check-time">${
 timeText}
@@ -1368,248 +1248,211 @@ goalText}
 glass${
 goalText==="1"?"":"es"}
 </div>`;
-    item.addEventListener("click", function () {
-      checkbox.checked=!checkbox.checked;
-      saveWaterChecks();
-      updateAllUI();
-      saveCloudData()
-    }
-    );
-    box.appendChild(item)
-  }
-  )
-}
-const stepGoalInput=document.getElementById("stepGoalInput"), startHourInput=document.getElementById("startHourInput"), endHourInput=document.getElementById("endHourInput"), makeStepPlanBtn=document.getElementById("makeStepPlan"), resetStepsBtn=document.getElementById("resetSteps"), stepTableBody=document.querySelector("#stepTable tbody"), stepMessage=document.getElementById("stepMessage");
+item.addEventListener("click",function(){
+checkbox.checked=!checkbox.checked;
+saveWaterChecks();
+updateAllUI();
+saveCloudData()}
+);
+box.appendChild(item)}
+)}
+const stepGoalInput=document.getElementById("stepGoalInput"),startHourInput=document.getElementById("startHourInput"),endHourInput=document.getElementById("endHourInput"),makeStepPlanBtn=document.getElementById("makeStepPlan"),resetStepsBtn=document.getElementById("resetSteps"),stepTableBody=document.querySelector("#stepTable tbody"),stepMessage=document.getElementById("stepMessage");
 let savedStepChecks=JSON.parse(localStorage.getItem(dailyKey("savedStepChecks")))||[];
 stepGoalInput.value=localStorage.getItem("stepGoal")||stepGoalInput.value;
 startHourInput.value=localStorage.getItem("startHour")||startHourInput.value;
 endHourInput.value=localStorage.getItem("endHour")||endHourInput.value;
-function saveStepSettings() {
-  localStorage.setItem("stepGoal", stepGoalInput.value);
-  localStorage.setItem("startHour", startHourInput.value);
-  localStorage.setItem("endHour", endHourInput.value)
-}
-function saveStepChecks() {
-  const checks=document.querySelectorAll(".step-check");
-  localStorage.setItem(dailyKey("savedStepChecks"), JSON.stringify(Array.from(checks).map(check=>check.checked)))
-}
-function makeStepPlan() {
-  const stepGoal=Number(stepGoalInput.value), startHour=Number(startHourInput.value), endHour=Number(endHourInput.value);
-  stepTableBody.innerHTML="";
-  if (!stepGoal||endHour<=startHour) {
-    stepMessage.textContent="Check your step goal and times, then try again.";
-    return
-  }
-  saveStepSettings();
-  const totalHours=endHour-startHour, stepsPerHour=Math.ceil(stepGoal/totalHours);
-  for (let i=1;
-  i<=totalHours;
-  i++) {
-    const targetTime=startHour+i;
-    let cumulativeSteps=stepsPerHour*i;
-    if (cumulativeSteps>stepGoal)cumulativeSteps=stepGoal;
-    const isChecked=savedStepChecks[i-1]===true?"checked":"", row=document.createElement("tr");
-    row.innerHTML=`<td>${
+function saveStepSettings(){
+localStorage.setItem("stepGoal",stepGoalInput.value);
+localStorage.setItem("startHour",startHourInput.value);
+localStorage.setItem("endHour",endHourInput.value)}
+function saveStepChecks(){
+const checks=document.querySelectorAll(".step-check");
+localStorage.setItem(dailyKey("savedStepChecks"),JSON.stringify(Array.from(checks).map(check=>check.checked)))}
+function makeStepPlan(){
+const stepGoal=Number(stepGoalInput.value),startHour=Number(startHourInput.value),endHour=Number(endHourInput.value);
+stepTableBody.innerHTML="";
+if(!stepGoal||endHour<=startHour){
+stepMessage.textContent="Check your step goal and times, then try again.";
+return}
+saveStepSettings();
+const totalHours=endHour-startHour,stepsPerHour=Math.ceil(stepGoal/totalHours);
+for(let i=1;
+i<=totalHours;
+i++){
+const targetTime=startHour+i;
+let cumulativeSteps=stepsPerHour*i;
+if(cumulativeSteps>stepGoal)cumulativeSteps=stepGoal;
+const isChecked=savedStepChecks[i-1]===true?"checked":"",row=document.createElement("tr");
+row.innerHTML=`<td>${
 formatHour(targetTime)}
 </td><td>${
 cumulativeSteps.toLocaleString()}
 steps</td><td><input type="checkbox" class="step-check" ${
 isChecked}
 ></td>`;
-    stepTableBody.appendChild(row)
-  }
-  updateAllUI()
-}
-function renderStepTimeline() {
-  const box=document.getElementById("stepTimeline"), rows=Array.from(document.querySelectorAll("#stepTable tbody tr")), nextIndex=rows.findIndex(row=> {
-    const checkbox=row.querySelector(".step-check");
-    return checkbox&&!checkbox.checked
-  }
-  );
-  box.innerHTML="";
-  rows.forEach(function (row, index) {
-    const checkbox=row.querySelector(".step-check"), isDone=checkbox.checked, isNext=index===nextIndex, timeText=row.children[0].textContent.replace(":00 ", " "), goalText=row.children[1].textContent.replace(" steps", "");
-    const item=document.createElement("button");
-    item.className="checkpoint step";
-    if (isDone)item.classList.add("done");
-    if (isNext)item.classList.add("next");
-    const symbol=isDone?"✓":index===rows.length-1?"🏆":"";
-    item.innerHTML=`<div class="check-symbol">${
+stepTableBody.appendChild(row)}
+updateAllUI()}
+function renderStepTimeline(){
+const box=document.getElementById("stepTimeline"),rows=Array.from(document.querySelectorAll("#stepTable tbody tr")),nextIndex=rows.findIndex(row=>{
+const checkbox=row.querySelector(".step-check");
+return checkbox&&!checkbox.checked}
+);
+box.innerHTML="";
+rows.forEach(function(row,index){
+const checkbox=row.querySelector(".step-check"),isDone=checkbox.checked,isNext=index===nextIndex,timeText=row.children[0].textContent.replace(":00 "," "),goalText=row.children[1].textContent.replace(" steps","");
+const item=document.createElement("button");
+item.className="checkpoint step";
+if(isDone)item.classList.add("done");
+if(isNext)item.classList.add("next");
+const symbol=isDone?"✓":index===rows.length-1?"🏆":"";
+item.innerHTML=`<div class="check-symbol">${
 symbol}
 </div><div class="check-time">${
 timeText}
 </div><div class="check-goal">${
 goalText}
 </div>`;
-    item.addEventListener("click", function () {
-      checkbox.checked=!checkbox.checked;
-      saveStepChecks();
-      updateAllUI();
-      saveCloudData()
-    }
-    );
-    box.appendChild(item)
-  }
-  )
-}
-function updateAllUI() {
-  const waterChecks=document.querySelectorAll(".water-check"), waterChecked=document.querySelectorAll(".water-check:checked"), stepChecks=document.querySelectorAll(".step-check"), stepChecked=document.querySelectorAll(".step-check:checked"), waterTotal=waterChecks.length||Number(waterGoalInput.value)||0, waterDone=waterChecked.length, stepTotal=stepChecks.length, stepDone=stepChecked.length, waterPercent=waterTotal?Math.round((waterDone/waterTotal)*100):0, stepPercent=stepTotal?Math.round((stepDone/stepTotal)*100):0, overallPercent=Math.round((waterPercent+stepPercent)/2);
-  document.getElementById("waterSummaryText").textContent=waterDone+" of "+waterTotal+" glasses";
-  document.getElementById("stepSummaryText").textContent=stepDone+" of "+stepTotal+" checkpoints";
-  document.getElementById("waterPercentLabel").textContent=waterPercent+"%";
-  document.getElementById("stepPercentLabel").textContent=stepPercent+"%";
-  document.getElementById("overallSummary").textContent=overallPercent+"%";
-  document.getElementById("overallProgressFill").style.width=overallPercent+"%";
-  document.getElementById("overallMessage").textContent=overallPercent===100?"Amazing work. Both goals are complete.":overallPercent>=50?"You’re making steady progress today.":"Small wins count. Check off what’s next.";
-  updateWaterUI(waterDone, waterTotal, waterPercent);
-  updateStepUI(stepDone, stepTotal, stepPercent);
-  renderWaterTimeline();
-  renderStepTimeline()
-}
-function updateWaterUI(done, total, percent) {
-  const degrees=Math.round((percent/100)*360);
-  document.getElementById("waterCircle").style.background="conic-gradient(var(--blue) "+degrees+"deg, #e8f1ff "+degrees+"deg)";
-  document.getElementById("waterCircleText").textContent=done;
-  document.getElementById("waterCircleGoal").textContent=total;
-  const rows=Array.from(document.querySelectorAll("#waterTable tbody tr")), nextRow=rows.find(row=> {
-    const checkbox=row.querySelector(".water-check");
-    return checkbox&&!checkbox.checked
-  }
-  );
-  if (nextRow) {
-    document.getElementById("nextWaterTime").textContent=nextRow.children[0].textContent;
-    document.getElementById("nextWaterTarget").textContent=nextRow.children[1].textContent
-  }
-  else {
-    document.getElementById("nextWaterTime").textContent="Done";
-    document.getElementById("nextWaterTarget").textContent="Water goal complete 🎉"
-  }
-}
-function updateStepUI(done, total, percent) {
-  const degrees=Math.round((percent/100)*360);
-  document.getElementById("stepCircle").style.background="conic-gradient(var(--green) "+degrees+"deg, #eafaf1 "+degrees+"deg)";
-  document.getElementById("stepCircleText").textContent=done;
-  document.getElementById("stepCircleGoal").textContent=total;
-  const rows=Array.from(document.querySelectorAll("#stepTable tbody tr")), nextRow=rows.find(row=> {
-    const checkbox=row.querySelector(".step-check");
-    return checkbox&&!checkbox.checked
-  }
-  );
-  if (nextRow) {
-    document.getElementById("nextStepTime").textContent=nextRow.children[0].textContent;
-    document.getElementById("nextStepTarget").textContent="Fitbit should show "+nextRow.children[1].textContent+"."
-  }
-  else {
-    document.getElementById("nextStepTime").textContent="Done";
-    document.getElementById("nextStepTarget").textContent="Step goal complete 🎉"
-  }
-}
-makeWaterPlanBtn.addEventListener("click", function () {
-  savedWaterChecks=[];
-  localStorage.setItem(dailyKey("savedWaterChecks"), JSON.stringify(savedWaterChecks));
-  saveWaterSettings();
-  makeWaterPlan();
-  waterMessage.textContent="Water plan updated. Your checkpoints were reset for today.";
-  saveCloudData()
-}
+item.addEventListener("click",function(){
+checkbox.checked=!checkbox.checked;
+saveStepChecks();
+updateAllUI();
+saveCloudData()}
 );
-resetWaterBtn.addEventListener("click", function () {
-  savedWaterChecks=[];
-  localStorage.setItem(dailyKey("savedWaterChecks"), JSON.stringify(savedWaterChecks));
-  makeWaterPlan();
-  waterMessage.textContent="Water checks reset for today.";
-  saveCloudData()
-}
+box.appendChild(item)}
+)}
+function updateAllUI(){
+const waterChecks=document.querySelectorAll(".water-check"),waterChecked=document.querySelectorAll(".water-check:checked"),stepChecks=document.querySelectorAll(".step-check"),stepChecked=document.querySelectorAll(".step-check:checked"),waterTotal=waterChecks.length||Number(waterGoalInput.value)||0,waterDone=waterChecked.length,stepTotal=stepChecks.length,stepDone=stepChecked.length,waterPercent=waterTotal?Math.round((waterDone/waterTotal)*100):0,stepPercent=stepTotal?Math.round((stepDone/stepTotal)*100):0,overallPercent=Math.round((waterPercent+stepPercent)/2);
+document.getElementById("waterSummaryText").textContent=waterDone+" of "+waterTotal+" glasses";
+document.getElementById("stepSummaryText").textContent=stepDone+" of "+stepTotal+" checkpoints";
+document.getElementById("waterPercentLabel").textContent=waterPercent+"%";
+document.getElementById("stepPercentLabel").textContent=stepPercent+"%";
+document.getElementById("overallSummary").textContent=overallPercent+"%";
+document.getElementById("overallProgressFill").style.width=overallPercent+"%";
+document.getElementById("overallMessage").textContent=overallPercent===100?"Amazing work. Both goals are complete.":overallPercent>=50?"You’re making steady progress today.":"Small wins count. Check off what’s next.";
+updateWaterUI(waterDone,waterTotal,waterPercent);
+updateStepUI(stepDone,stepTotal,stepPercent);
+renderWaterTimeline();
+renderStepTimeline()}
+function updateWaterUI(done,total,percent){
+const degrees=Math.round((percent/100)*360);
+document.getElementById("waterCircle").style.background="conic-gradient(var(--blue) "+degrees+"deg, #e8f1ff "+degrees+"deg)";
+document.getElementById("waterCircleText").textContent=done;
+document.getElementById("waterCircleGoal").textContent=total;
+const rows=Array.from(document.querySelectorAll("#waterTable tbody tr")),nextRow=rows.find(row=>{
+const checkbox=row.querySelector(".water-check");
+return checkbox&&!checkbox.checked}
 );
-makeStepPlanBtn.addEventListener("click", function () {
-  savedStepChecks=[];
-  localStorage.setItem(dailyKey("savedStepChecks"), JSON.stringify(savedStepChecks));
-  saveStepSettings();
-  makeStepPlan();
-  stepMessage.textContent="Step plan updated. Your checkpoints were reset for today.";
-  saveCloudData()
+if(nextRow){
+document.getElementById("nextWaterTime").textContent=nextRow.children[0].textContent;
+document.getElementById("nextWaterTarget").textContent=nextRow.children[1].textContent}
+else{
+document.getElementById("nextWaterTime").textContent="Done";
+document.getElementById("nextWaterTarget").textContent="Water goal complete 🎉"}
 }
+function updateStepUI(done,total,percent){
+const degrees=Math.round((percent/100)*360);
+document.getElementById("stepCircle").style.background="conic-gradient(var(--green) "+degrees+"deg, #eafaf1 "+degrees+"deg)";
+document.getElementById("stepCircleText").textContent=done;
+document.getElementById("stepCircleGoal").textContent=total;
+const rows=Array.from(document.querySelectorAll("#stepTable tbody tr")),nextRow=rows.find(row=>{
+const checkbox=row.querySelector(".step-check");
+return checkbox&&!checkbox.checked}
 );
-resetStepsBtn.addEventListener("click", function () {
-  savedStepChecks=[];
-  localStorage.setItem(dailyKey("savedStepChecks"), JSON.stringify(savedStepChecks));
-  makeStepPlan();
-  stepMessage.textContent="Step checks reset for today.";
-  saveCloudData()
+if(nextRow){
+document.getElementById("nextStepTime").textContent=nextRow.children[0].textContent;
+document.getElementById("nextStepTarget").textContent="Fitbit should show "+nextRow.children[1].textContent+"."}
+else{
+document.getElementById("nextStepTime").textContent="Done";
+document.getElementById("nextStepTarget").textContent="Step goal complete 🎉"}
 }
+makeWaterPlanBtn.addEventListener("click",function(){
+savedWaterChecks=[];
+localStorage.setItem(dailyKey("savedWaterChecks"),JSON.stringify(savedWaterChecks));
+saveWaterSettings();
+makeWaterPlan();
+waterMessage.textContent="Water plan updated. Your checkpoints were reset for today.";
+saveCloudData()}
 );
-function setSyncText(status, detail) {
-  syncStatus.textContent=status;
-  accountSyncStatus.textContent=status;
-  lastSynced.textContent=detail;
-  accountLastSynced.textContent=detail
-}
-function markSynced() {
-  setSyncText("☁ Synced", "Last synced: just now")
-}
-async function saveCloudData() {
-  if (!currentUser)return;
-  setSyncText("☁ Saving...", "Last synced: working...");
-  const waterChecks=Array.from(document.querySelectorAll(".water-check")).map(check=>check.checked), stepChecks=Array.from(document.querySelectorAll(".step-check")).map(check=>check.checked);
-  const {
-    error
-  }
-  =await supabaseClient.from("daily_health").upsert( {
-    user_id:currentUser.id, date:todayKey, water_goal:Number(waterGoalInput.value), water_start:Number(waterStartInput.value), water_end:Number(waterEndInput.value), water_checks:waterChecks, step_goal:Number(stepGoalInput.value), step_start:Number(startHourInput.value), step_end:Number(endHourInput.value), step_checks:stepChecks, updated_at:new Date().toISOString()
-  }
-  , {
-    onConflict:"user_id, date"
-  }
-  );
-  if (error) {
-    console.log("Cloud save error:", error.message);
-    setSyncText("⚠️ Sync error", "Last synced: error");
-    return
-  }
-  markSynced()
-}
-async function loadCloudData() {
-  if (!currentUser)return;
-  const {
-    data, error
-  }
-  =await supabaseClient.from("daily_health").select("*").eq("user_id", currentUser.id).eq("date", todayKey).maybeSingle();
-  if (error) {
-    console.log("Cloud load error:", error.message);
-    setSyncText("⚠️ Sync error", "Last synced: error");
-    return
-  }
-  if (!data) {
-    updateAllUI();
-    return
-  }
-  waterGoalInput.value=data.water_goal||waterGoalInput.value;
-  waterStartInput.value=data.water_start||waterStartInput.value;
-  waterEndInput.value=data.water_end||waterEndInput.value;
-  savedWaterChecks=data.water_checks||[];
-  stepGoalInput.value=data.step_goal||stepGoalInput.value;
-  startHourInput.value=data.step_start||startHourInput.value;
-  endHourInput.value=data.step_end||endHourInput.value;
-  savedStepChecks=data.step_checks||[];
-  makeWaterPlan();
-  makeStepPlan();
-  updateAllUI();
-  markSynced()
-}
-async function checkSavedSession() {
-  const {
-    data
-  }
-  =await supabaseClient.auth.getSession();
-  if (data.session) {
-    currentUser=data.session.user;
-    authMessage.textContent="Signed in.";
-    updateAuthDisplay();
-    await loadCloudData()
-  }
-  else {
-    updateAuthDisplay()
-  }
+resetWaterBtn.addEventListener("click",function(){
+savedWaterChecks=[];
+localStorage.setItem(dailyKey("savedWaterChecks"),JSON.stringify(savedWaterChecks));
+makeWaterPlan();
+waterMessage.textContent="Water checks reset for today.";
+saveCloudData()}
+);
+makeStepPlanBtn.addEventListener("click",function(){
+savedStepChecks=[];
+localStorage.setItem(dailyKey("savedStepChecks"),JSON.stringify(savedStepChecks));
+saveStepSettings();
+makeStepPlan();
+stepMessage.textContent="Step plan updated. Your checkpoints were reset for today.";
+saveCloudData()}
+);
+resetStepsBtn.addEventListener("click",function(){
+savedStepChecks=[];
+localStorage.setItem(dailyKey("savedStepChecks"),JSON.stringify(savedStepChecks));
+makeStepPlan();
+stepMessage.textContent="Step checks reset for today.";
+saveCloudData()}
+);
+function setSyncText(status,detail){
+syncStatus.textContent=status;
+accountSyncStatus.textContent=status;
+lastSynced.textContent=detail;
+accountLastSynced.textContent=detail}
+function markSynced(){
+setSyncText("☁ Synced","Last synced: just now")}
+async function saveCloudData(){
+if(!currentUser)return;
+setSyncText("☁ Saving...","Last synced: working...");
+const waterChecks=Array.from(document.querySelectorAll(".water-check")).map(check=>check.checked),stepChecks=Array.from(document.querySelectorAll(".step-check")).map(check=>check.checked);
+const{
+error}
+=await supabaseClient.from("daily_health").upsert({
+user_id:currentUser.id,date:todayKey,water_goal:Number(waterGoalInput.value),water_start:Number(waterStartInput.value),water_end:Number(waterEndInput.value),water_checks:waterChecks,step_goal:Number(stepGoalInput.value),step_start:Number(startHourInput.value),step_end:Number(endHourInput.value),step_checks:stepChecks,updated_at:new Date().toISOString()}
+,{
+onConflict:"user_id,date"}
+);
+if(error){
+console.log("Cloud save error:",error.message);
+setSyncText("⚠️ Sync error","Last synced: error");
+return}
+markSynced()}
+async function loadCloudData(){
+if(!currentUser)return;
+const{
+data,error}
+=await supabaseClient.from("daily_health").select("*").eq("user_id",currentUser.id).eq("date",todayKey).maybeSingle();
+if(error){
+console.log("Cloud load error:",error.message);
+setSyncText("⚠️ Sync error","Last synced: error");
+return}
+if(!data){
+updateAllUI();
+return}
+waterGoalInput.value=data.water_goal||waterGoalInput.value;
+waterStartInput.value=data.water_start||waterStartInput.value;
+waterEndInput.value=data.water_end||waterEndInput.value;
+savedWaterChecks=data.water_checks||[];
+stepGoalInput.value=data.step_goal||stepGoalInput.value;
+startHourInput.value=data.step_start||startHourInput.value;
+endHourInput.value=data.step_end||endHourInput.value;
+savedStepChecks=data.step_checks||[];
+makeWaterPlan();
+makeStepPlan();
+updateAllUI();
+markSynced()}
+async function checkSavedSession(){
+const{
+data}
+=await supabaseClient.auth.getSession();
+if(data.session){
+currentUser=data.session.user;
+authMessage.textContent="Signed in.";
+updateAuthDisplay();
+await loadCloudData()}
+else{
+updateAuthDisplay()}
 }
 makeWaterPlan();
 makeStepPlan();
