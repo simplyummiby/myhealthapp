@@ -7,19 +7,21 @@
    Today Health Dashboard
   </title>
   <!--
-Version 1.3.0.4.2
+Version 1.3.0.5
 Date: 2026-06-14
 
 Changes:
-- Fully removed button-style hover/click animation from Forgot Password text link
-- Added stronger CSS specificity so Account button hover rules no longer affect .link-btn
-- Kept hover and click feedback on actual Account buttons
-- Kept improved password reset messaging from v1.3.0.4
-- Kept password recovery flow, unified dashboard, and timeline scroll fix
+- Improved password recovery workflow on Account page
+- Added prominent Password Recovery banner behavior
+- Moved Set New Password box to the top of the Account card during recovery mode
+- Hid the normal sign-in and password-help sections while recovery mode is active
+- Added clearer recovery instructions
+- Kept improved auth messaging from v1.3.0.4
+- Kept unified dashboard and timeline scroll fix
 - Supabase sync retained
 
 Previous Version:
-- v1.3.0.4.1 Fix forgot password link hover
+- v1.3.0.4.2 Fix forgot password link hover specificity
 -->
   <style>
 :root{
@@ -605,6 +607,47 @@ transform: none;
   color: #35177f !important;
 }
 
+
+/* V1.3.0.5 PASSWORD RECOVERY BANNER */
+
+#passwordRecoveryBox.recovery-active {
+  display: block !important;
+  order: -1;
+  border: 2px solid var(--purple);
+  background: linear-gradient(135deg, #faf7ff, #f3ecff);
+  box-shadow: 0 14px 35px rgba(109, 53, 216, 0.12);
+}
+
+#passwordRecoveryBox.recovery-active::before {
+  content: "🔐 Password Recovery";
+  display: block;
+  font-weight: 800;
+  color: var(--purple);
+  font-size: 18px;
+  margin-bottom: 8px;
+}
+
+.account-section.recovery-mode #signedOutBox {
+  display: none !important;
+}
+
+.account-section.recovery-mode #signedInBox {
+  display: none !important;
+}
+
+.account-section.recovery-mode #authMessage {
+  border: 1px solid var(--line);
+  background: #ffffff;
+}
+
+.recovery-box h3 {
+  color: var(--text);
+}
+
+#saveNewPasswordBtn {
+  margin-top: 8px;
+}
+
 </style>
  </head>
  <body>
@@ -985,7 +1028,7 @@ transform: none;
       </div>
      </div>
      <div class="settings-grid">
-      <div class="card account-section">
+      <div class="card account-section" id="accountAuthCard">
        <div id="signedOutBox">
         <h2>
          Sign In
@@ -1048,7 +1091,7 @@ transform: none;
          Set New Password
         </h3>
         <p class="small-note">
-         Enter a new password after opening the reset link from your email.
+         You're almost done. Enter a new password below to regain access to your account.
         </p>
         <label>
          New Password
@@ -1090,16 +1133,26 @@ v1.3.0.2 password recovery:
 When the user opens the Supabase password reset link, Supabase fires
 PASSWORD_RECOVERY. We then show the new password form on the Account page.
 */
-supabaseClient.auth.onAuthStateChange(function(event,session){
-if(event==="PASSWORD_RECOVERY"){
-if(passwordRecoveryBox){
-passwordRecoveryBox.style.display="block";
-}
-openPanel("accountPanel");
-authMessage.textContent="Password recovery mode. Enter a new password below.";
-}
-}
-);
+supabaseClient.auth.onAuthStateChange(function (event, session) {
+  if (event === "PASSWORD_RECOVERY") {
+    const accountAuthCard = document.getElementById("accountAuthCard");
+
+    if (passwordRecoveryBox) {
+      passwordRecoveryBox.style.display = "block";
+      passwordRecoveryBox.classList.add("recovery-active");
+
+      if (accountAuthCard) {
+        accountAuthCard.classList.add("recovery-mode");
+        accountAuthCard.prepend(passwordRecoveryBox);
+      }
+    }
+
+    openPanel("accountPanel");
+
+    authMessage.textContent =
+      "Password recovery mode is active. Enter your new password in the box above.";
+  }
+});
 const emailInput=document.getElementById("emailInput"),passwordInput=document.getElementById("passwordInput"),newPasswordInput=document.getElementById("newPasswordInput"),passwordRecoveryBox=document.getElementById("passwordRecoveryBox"),resetEmailInput=document.getElementById("resetEmailInput"),authMessage=document.getElementById("authMessage"),syncStatus=document.getElementById("syncStatus"),lastSynced=document.getElementById("lastSynced"),accountSyncStatus=document.getElementById("accountSyncStatus"),accountLastSynced=document.getElementById("accountLastSynced"),signedOutBox=document.getElementById("signedOutBox"),signedInBox=document.getElementById("signedInBox"),userEmail=document.getElementById("userEmail");
 function getTodayKey(){
 const d=new Date();
@@ -1212,26 +1265,43 @@ document.getElementById("sendResetEmailBtn").addEventListener("click", async fun
   authMessage.textContent =
     "Password reset email sent. Check your inbox and spam folder. The email may take a few minutes to arrive.";
 });
-document.getElementById("saveNewPasswordBtn").addEventListener("click",async function(){
-const newPassword=newPasswordInput.value;
-if(!newPassword||newPassword.length<6){
-authMessage.textContent="Enter a new password with at least 6 characters.";
-return}
-const{
-error}
-=await supabaseClient.auth.updateUser({
-password:newPassword}
-);
-if(error){
-authMessage.textContent=error.message;
-return}
-authMessage.textContent="Password updated. You can now sign in with your new password.";
-newPasswordInput.value="";
-if(passwordRecoveryBox){
-passwordRecoveryBox.style.display="none";
-}
-}
-);
+document.getElementById("saveNewPasswordBtn").addEventListener("click", async function () {
+  const newPassword = newPasswordInput.value;
+
+  if (!newPassword || newPassword.length < 6) {
+    authMessage.textContent =
+      "Enter a new password with at least 6 characters.";
+    return;
+  }
+
+  const { error } =
+    await supabaseClient.auth.updateUser({
+      password: newPassword
+    });
+
+  if (error) {
+    authMessage.textContent = error.message;
+    return;
+  }
+
+  authMessage.textContent =
+    "Password updated. You can now sign in with your new password.";
+
+  newPasswordInput.value = "";
+
+  if (passwordRecoveryBox) {
+    passwordRecoveryBox.style.display = "none";
+    passwordRecoveryBox.classList.remove("recovery-active");
+  }
+
+  const accountAuthCard = document.getElementById("accountAuthCard");
+
+  if (accountAuthCard) {
+    accountAuthCard.classList.remove("recovery-mode");
+  }
+
+  updateAuthDisplay();
+});
 document.getElementById("signOutBtn").addEventListener("click",async function(){
 await supabaseClient.auth.signOut();
 currentUser=null;
