@@ -7,20 +7,18 @@
    Today Health Dashboard
   </title>
   <!--
-Version 1.3.0.4
+Version 1.3.0.4.1
 Date: 2026-06-14
 
 Changes:
-- Improved password reset error messages
-- Added friendlier message for email rate limits
-- Added clearer password reset success message
-- Kept separate reset email field in Password Help
-- Kept password recovery flow from v1.3.0.3
-- Kept unified dashboard and timeline scroll fix
+- Removed button-style hover effect from Forgot Password text link
+- Kept hover and click feedback on actual Account buttons
+- Kept improved password reset messaging from v1.3.0.4
+- Kept password recovery flow, unified dashboard, and timeline scroll fix
 - Supabase sync retained
 
 Previous Version:
-- v1.3.0.3.2 Beautify source formatting
+- v1.3.0.4 Improve auth messaging
 -->
   <style>
 :root{
@@ -549,6 +547,27 @@ opacity: 0.65;
 cursor: not-allowed;
 transform: none;
 }
+
+/* V1.3.0.4.1 TEXT LINK HOVER FIX */
+
+.link-btn,
+.link-btn:hover,
+.link-btn:active {
+  transform: none;
+  box-shadow: none;
+  filter: none;
+  opacity: 1;
+}
+
+.link-btn:hover {
+  color: #4f22b8;
+  text-decoration: underline;
+}
+
+.link-btn:active {
+  color: #35177f;
+}
+
 </style>
  </head>
  <body>
