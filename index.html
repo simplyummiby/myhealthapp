@@ -1246,7 +1246,7 @@ document.getElementById("sendResetEmailBtn").addEventListener("click", async fun
   const originalText=resetButton.textContent;
   resetButton.textContent="Sending...";
   resetButton.disabled=true;
-  const redirectUrl=window.location.href.split("#")[0].split("?")[0];
+ const redirectUrl=window.location.origin + window.location.pathname.replace(/\/?$/, "/");
   const {
     error
   }
