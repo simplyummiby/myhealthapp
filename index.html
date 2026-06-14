@@ -6,23 +6,18 @@
 <title>Today Health Dashboard</title>
 
 <!--
-Version 1.3.0
+Version 1.3.0.1
 Date: 2026-06-13
 
 Changes:
-- Rebuilt app into a unified dashboard
-- Water and Steps are now visible on the main Dashboard screen
-- Added matching Water and Steps progress circle cards
-- Added one-click checkpoint timelines for Water and Steps
-- Added Next Water and Next Step Check-In cards
-- Added tip cards for Water and Steps
-- Added navigation for Dashboard, History, Settings, and Account
-- Moved plan controls to Settings
-- Moved sign in/out and sync status to Account
-- Kept Supabase sync, session persistence, and daily tracking logic
+- Fixed Water and Steps timeline rows so they scroll horizontally inside their cards
+- Prevented checkpoint timelines from making the whole app too wide
+- Added mobile-friendly swipe behavior for checkpoint rows
+- Kept unified dashboard layout from v1.3.0
+- Supabase sync retained
 
 Previous Version:
-- v1.2.6 Water polish and cleanup
+- v1.3.0 Unified Dashboard Foundation
 -->
 
 <style>
@@ -33,6 +28,50 @@ Previous Version:
 }
 *{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:linear-gradient(135deg,#fbf9ff,#f5f9ff);color:var(--text)}
 .app{display:grid;grid-template-columns:250px 1fr;min-height:100vh}.sidebar{background:rgba(255,255,255,.9);border-right:1px solid var(--line);padding:26px 20px;display:flex;flex-direction:column;gap:20px}.logo{display:flex;gap:12px;align-items:center;font-size:21px;font-weight:800;margin-bottom:12px}.logo-icon{width:48px;height:48px;border-radius:18px;background:linear-gradient(135deg,#7c3aed,#9d6cff);color:white;display:grid;place-items:center;font-size:26px}.nav{display:grid;gap:10px}.tab-btn{width:100%;border:none;background:transparent;padding:14px 16px;border-radius:14px;text-align:left;font-size:16px;cursor:pointer;color:var(--text)}.tab-btn.active{background:linear-gradient(135deg,#7c3aed,#6d28d9);color:white;font-weight:700;box-shadow:0 10px 22px rgba(109,40,217,.22)}.sidebar-bottom{margin-top:auto;display:grid;gap:14px}.side-card,.card,.tracker-card{background:white;border:1px solid var(--line);border-radius:24px;padding:22px;box-shadow:var(--shadow)}#syncStatus,#accountSyncStatus{color:var(--green);font-weight:800}.small-note{color:var(--muted);font-size:14px;line-height:1.5}.main{padding:30px}.panel{display:none}.panel.active{display:block}.topbar{display:flex;justify-content:space-between;align-items:center;gap:18px;margin-bottom:22px}.welcome h1{margin:0;font-size:32px}.welcome p{margin:8px 0 0;color:var(--muted)}.date-pill{background:white;border:1px solid var(--line);border-radius:16px;padding:14px 18px;box-shadow:var(--shadow);white-space:nowrap}.overall-card{margin-bottom:18px;display:grid;grid-template-columns:1fr auto;gap:18px;align-items:center}.overall-card h2{margin:0 0 8px}.overall-card p{margin:0;color:var(--muted)}.overall-percent{font-size:38px;font-weight:800;color:var(--purple)}.progress-track{height:12px;background:#ece8f5;border-radius:999px;overflow:hidden;margin-top:16px}.progress-fill{height:100%;border-radius:999px;width:0%;background:linear-gradient(90deg,#7c3aed,#9d6cff)}.dashboard-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}.tracker-card{border-radius:28px;padding:24px}.tracker-header{display:flex;justify-content:space-between;gap:14px;align-items:flex-start;margin-bottom:18px}.tracker-title{display:flex;gap:12px;align-items:center}.tracker-icon{width:48px;height:48px;border-radius:18px;display:grid;place-items:center;font-size:26px}.water-icon{background:var(--blue-soft)}.step-icon{background:var(--green-soft)}.tracker-title h2{margin:0;font-size:24px}.tracker-title p{margin:4px 0 0;color:var(--muted);font-size:14px}.tracker-percent{font-size:28px;font-weight:800}.water-color{color:var(--blue)}.step-color{color:var(--green)}.tracker-body{display:grid;grid-template-columns:180px 1fr;gap:18px;align-items:center}.progress-circle{width:170px;height:170px;border-radius:50%;display:grid;place-items:center;margin:0 auto}.progress-circle-inner{width:122px;height:122px;border-radius:50%;background:white;display:grid;place-items:center;text-align:center;box-shadow:var(--shadow)}.progress-circle-inner strong{font-size:36px;line-height:1}.progress-circle-inner span{color:var(--muted);font-size:14px;line-height:1.35}.next-card{border-radius:22px;padding:22px;min-height:160px;display:grid;align-content:center}.water-next{background:linear-gradient(135deg,#f3f9ff,#eaf4ff);border:1px solid #d5e8ff}.step-next{background:linear-gradient(135deg,#f4fff8,#eafaf1);border:1px solid #cfeedd}.next-label{font-weight:800;margin-bottom:8px}.next-main{display:block;font-size:32px;font-weight:800;color:var(--text);margin-bottom:8px}.next-message{color:var(--muted);line-height:1.45}.timeline{margin-top:22px}.timeline-title{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px}.timeline-title strong{font-size:18px}.timeline-row{display:flex;gap:10px;overflow-x:auto;padding:4px 2px 10px}.checkpoint{min-width:78px;border:1px solid var(--line);background:#fbfdff;border-radius:18px;padding:12px 10px;text-align:center;cursor:pointer;transition:transform .15s ease,border-color .15s ease,background .15s ease}.checkpoint:hover{transform:translateY(-1px)}.checkpoint.done{color:white}.checkpoint.water.done{background:var(--blue);border-color:var(--blue)}.checkpoint.step.done{background:var(--green);border-color:var(--green)}.checkpoint.next{border-width:2px}.checkpoint.water.next{background:#f3f9ff;border-color:var(--blue)}.checkpoint.step.next{background:#f4fff8;border-color:var(--green)}.check-symbol{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;margin:0 auto 8px;border:2px solid #aeb8cc;background:white;color:var(--muted);font-weight:800}.checkpoint.done .check-symbol{border-color:white;background:rgba(255,255,255,.25);color:white}.checkpoint.water.next .check-symbol{border-color:var(--blue);color:var(--blue)}.checkpoint.step.next .check-symbol{border-color:var(--green);color:var(--green)}.check-time{font-weight:800;font-size:13px;white-space:nowrap}.check-goal{font-size:12px;margin-top:4px;color:var(--muted);white-space:nowrap}.checkpoint.done .check-goal{color:rgba(255,255,255,.85)}.tip-card{margin-top:16px;border-radius:18px;padding:16px;display:grid;grid-template-columns:44px 1fr;gap:12px;align-items:center}.water-tip{background:var(--blue-soft)}.step-tip{background:var(--green-soft)}.tip-icon{width:44px;height:44px;border-radius:50%;background:white;display:grid;place-items:center;font-size:24px}.tip-card strong{display:block;margin-bottom:4px}.tip-card p{margin:0;color:var(--muted);line-height:1.4;font-size:14px}.settings-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}.settings-section h2,.account-section h2,.history-section h2{margin-top:0}label{display:block;margin:12px 0;color:var(--muted);font-weight:700}input{width:100%;padding:11px;border:1px solid var(--line);border-radius:12px;font-size:15px;margin-top:6px}button{border:none;border-radius:14px;padding:12px 16px;font-size:15px;cursor:pointer;margin:6px 4px 6px 0}.primary-btn{background:var(--purple);color:white}.water-btn{background:var(--blue);color:white}.step-btn{background:var(--green);color:white}.soft-btn{background:var(--purple-soft);color:var(--purple)}.reset-btn{background:#f0edf7;color:var(--muted)}.message{background:#faf7ff;border-radius:16px;padding:14px;color:var(--muted);line-height:1.5}.week-placeholder{display:grid;grid-template-columns:repeat(7,1fr);gap:10px}.day-box{background:#faf7ff;border:1px solid var(--line);border-radius:16px;padding:14px 8px;text-align:center;color:var(--muted)}.day-box strong{display:block;color:var(--text);margin-bottom:8px}#signedInBox{display:none}.hidden-table{display:none}@media(max-width:1050px){.dashboard-grid,.settings-grid{grid-template-columns:1fr}}@media(max-width:860px){.app{grid-template-columns:1fr}.sidebar{border-right:none;border-bottom:1px solid var(--line)}.nav{display:flex;overflow-x:auto}.tab-btn{min-width:130px;text-align:center}.sidebar-bottom{display:none}.main{padding:20px}.topbar,.overall-card{display:grid;grid-template-columns:1fr;align-items:start}.tracker-body{grid-template-columns:1fr}.progress-circle{width:165px;height:165px}.progress-circle-inner{width:118px;height:118px}.next-main{font-size:30px}.week-placeholder{grid-template-columns:repeat(2,1fr)}}
+
+/* V1.3.0.1 TIMELINE SCROLL FIX */
+
+.tracker-card {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.timeline {
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.timeline-row {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  max-width: 100%;
+  padding: 4px 2px 12px;
+  scroll-snap-type: x proximity;
+  -webkit-overflow-scrolling: touch;
+}
+
+.checkpoint {
+  flex: 0 0 auto;
+  min-width: 78px;
+  scroll-snap-align: start;
+}
+
+.dashboard-grid {
+  min-width: 0;
+}
+
+.main {
+  min-width: 0;
+  overflow-x: hidden;
+}
+
+body {
+  overflow-x: hidden;
+}
+
 </style>
 </head>
 <body>
