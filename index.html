@@ -7,18 +7,19 @@
    Today Health Dashboard
   </title>
   <!--
-Version 1.3.0.4.1
+Version 1.3.0.4.2
 Date: 2026-06-14
 
 Changes:
-- Removed button-style hover effect from Forgot Password text link
+- Fully removed button-style hover/click animation from Forgot Password text link
+- Added stronger CSS specificity so Account button hover rules no longer affect .link-btn
 - Kept hover and click feedback on actual Account buttons
 - Kept improved password reset messaging from v1.3.0.4
 - Kept password recovery flow, unified dashboard, and timeline scroll fix
 - Supabase sync retained
 
 Previous Version:
-- v1.3.0.4 Improve auth messaging
+- v1.3.0.4.1 Fix forgot password link hover
 -->
   <style>
 :root{
@@ -566,6 +567,42 @@ transform: none;
 
 .link-btn:active {
   color: #35177f;
+}
+
+
+/* V1.3.0.4.2 STRONG FORGOT PASSWORD LINK HOVER FIX */
+
+.account-section button.link-btn,
+.account-section button.link-btn:hover,
+.account-section button.link-btn:active,
+.recovery-box button.link-btn,
+.recovery-box button.link-btn:hover,
+.recovery-box button.link-btn:active,
+#signedOutBox button.link-btn,
+#signedOutBox button.link-btn:hover,
+#signedOutBox button.link-btn:active {
+  background: transparent !important;
+  color: var(--purple) !important;
+  box-shadow: none !important;
+  filter: none !important;
+  opacity: 1 !important;
+  transform: none !important;
+  padding-left: 0;
+  padding-right: 0;
+  text-decoration: underline;
+}
+
+.account-section button.link-btn:hover,
+.recovery-box button.link-btn:hover,
+#signedOutBox button.link-btn:hover {
+  color: #4f22b8 !important;
+  text-decoration: underline;
+}
+
+.account-section button.link-btn:active,
+.recovery-box button.link-btn:active,
+#signedOutBox button.link-btn:active {
+  color: #35177f !important;
 }
 
 </style>
